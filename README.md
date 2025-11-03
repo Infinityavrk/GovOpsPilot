@@ -252,13 +252,6 @@ Real-time priority queue showing:
 - Trend analysis and forecasting
 - Custom ML model training
 
-## 📚 Documentation
-
-- [Architecture Design](docs/architecture.md)
-- [API Reference](docs/api.md)
-- [Deployment Guide](docs/deployment.md)
-- [Troubleshooting](docs/troubleshooting.md)
-
 ## 🤝 Contributing
 
 1. Fork the repository
