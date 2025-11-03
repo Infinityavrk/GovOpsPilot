@@ -11,6 +11,7 @@ A unified AWS-based serverless architecture that orchestrates three intelligent 
 3. **💻 Smart Asset & License Optimizer** - Forecast renewals and reduce software waste
 
 ### Unified Architecture
+- **AI Model Llama 3.2**: AWS Bedrock (7996+ character responses)
 - **Serverless**: AWS Lambda, EventBridge, Step Functions
 - **Event-Driven**: Real-time cross-agent communication
 - **ML-Powered**: SageMaker for intelligent predictions
