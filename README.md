@@ -1,4 +1,4 @@
-# 🧩 Service Efficiency Platform
+# 🎯 GovOps Pilot - Advanced AI-powered analysis for Indian e-Governance
 
 A unified AWS-based serverless architecture that orchestrates three intelligent micro-agents to optimize IT operations, prevent service disruptions, and reduce costs through automated insights and actions.
 
