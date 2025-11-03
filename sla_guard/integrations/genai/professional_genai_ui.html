@@ -1,0 +1,1919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS GenAI Service Efficiency Platform | Enterprise AI Workflow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            --dark-gradient: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f1f5f9;
+
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+
+            --border-light: #e2e8f0;
+            --border-medium: #cbd5e1;
+
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-2xl: 1.5rem;
+
+            --sidebar-width: 280px;
+            --footer-height: 54px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            padding-left: var(--sidebar-width);
+            padding-bottom: calc(var(--footer-height) + 10px);
+        }
+
+        /* LEFT OPS / GOV PANEL */
+        .side-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: #0f172a;
+            color: #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            z-index: 50;
+            box-shadow: 6px 0 20px rgba(15, 23, 42, 0.25);
+        }
+
+        .side-panel-header {
+            padding: 1.25rem 1.5rem 0.75rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+        }
+
+        .side-panel-title {
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .side-panel small {
+            color: rgba(226, 232, 240, 0.65);
+        }
+
+        .persona-list {
+            padding: 1rem 1rem 0.5rem;
+            display: grid;
+            gap: 0.65rem;
+        }
+
+        .persona-item {
+            background: rgba(15, 23, 42, 0.35);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 1rem;
+            padding: 0.6rem 0.7rem 0.6rem 0.6rem;
+            display: flex;
+            gap: 0.6rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .persona-item:hover,
+        .persona-item.active {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.35), rgba(118, 75, 162, 0.15));
+            border-color: rgba(102, 126, 234, 0.55);
+            transform: translateY(-2px);
+        }
+
+        .persona-icon {
+            width: 33px;
+            height: 33px;
+            border-radius: 9999px;
+            display: grid;
+            place-items: center;
+            background: rgba(15, 23, 42, 0.3);
+            border: 1px solid rgba(226, 232, 240, 0.15);
+            font-size: 0.85rem;
+        }
+
+        .persona-body {
+            flex: 1;
+        }
+
+        .persona-title {
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        .persona-meta {
+            font-size: 0.68rem;
+            opacity: 0.75;
+        }
+
+        .queue-panel-title {
+            padding: 0.5rem 1.5rem 0.4rem;
+            font-size: 0.67rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06rem;
+            opacity: 0.55;
+        }
+
+        .ticket-list {
+            padding: 0 1rem;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .ticket-item {
+            background: rgba(15, 23, 42, 0.06);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 0.8rem;
+            padding: 0.5rem 0.6rem 0.45rem;
+            margin-bottom: 0.45rem;
+        }
+
+        .ticket-line {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.5rem;
+        }
+
+        .ticket-name {
+            font-size: 0.68rem;
+            font-weight: 600;
+        }
+
+        .ticket-badge {
+            font-size: 0.6rem;
+            padding: 0.08rem 0.3rem;
+            border-radius: 9999px;
+            background: rgba(250, 112, 154, 0.15);
+        }
+
+        .ticket-meta {
+            font-size: 0.6rem;
+            opacity: 0.65;
+        }
+
+        .side-panel-footer {
+            padding: 0.7rem 1.2rem 0.9rem;
+            border-top: 1px solid rgba(148, 163, 184, 0.08);
+            font-size: 0.68rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Header Section */
+        .header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="white" opacity="0.1"><polygon points="0,0 1000,0 1000,100 0,80"/></svg>');
+            background-size: cover;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #ffffff, #e2e8f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header .subtitle {
+            font-size: 1.25rem;
+            font-weight: 400;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+        .header .tech-stack {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        .tech-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-lg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tech-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* SLA / KPI STRIP */
+        .kpi-strip {
+            margin: 2rem 2rem -0.5rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 1rem;
+        }
+        .kpi-card {
+            background: #fff;
+            border-radius: 1.25rem;
+            padding: 1.1rem 1rem 1rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+        }
+        .kpi-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04rem;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .kpi-value {
+            font-size: 1.45rem;
+            font-weight: 700;
+            margin-top: 0.5rem;
+        }
+        .kpi-meta {
+            font-size: 0.7rem;
+            color: #94a3b8;
+        }
+        .kpi-badge-red {
+            background: rgba(248, 113, 113, 0.15);
+            color: #b91c1c;
+            padding: 0.2rem 0.55rem;
+            border-radius: 9999px;
+            font-size: 0.65rem;
+            font-weight: 600;
+        }
+        .kpi-badge-green {
+            background: rgba(22, 163, 74, 0.12);
+            color: #15803d;
+            padding: 0.2rem 0.55rem;
+            border-radius: 9999px;
+            font-size: 0.65rem;
+            font-weight: 600;
+        }
+
+        /* Workflow Visualization */
+        .workflow-section {
+            background: var(--bg-secondary);
+            margin: 1.5rem 2rem 2rem;
+            border-radius: var(--radius-2xl);
+            box-shadow: var(--shadow-xl);
+            padding: 3rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .workflow-title {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .workflow-title h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .workflow-title p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .workflow-pipeline {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+            position: relative;
+        }
+
+        .workflow-step {
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-xl);
+            padding: 2rem 1rem;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .workflow-step:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+            border-color: #667eea;
+        }
+
+        .workflow-step.active {
+            background: var(--success-gradient);
+            color: white;
+            border-color: transparent;
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .workflow-step.completed {
+            background: var(--warning-gradient);
+            color: white;
+            border-color: transparent;
+        }
+
+        .workflow-step.error {
+            background: var(--danger-gradient);
+            color: white;
+            border-color: transparent;
+        }
+
+        .step-icon { font-size: 2.5rem; margin-bottom: 1rem; display: block; }
+        .step-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem; }
+        .step-desc { font-size: 0.8rem; opacity: 0.8; }
+
+        .progress-container {
+            margin: 2rem 0;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-lg);
+            padding: 1rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border-light);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--success-gradient);
+            width: 0%;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: var(--radius-sm);
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: 0.5rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        /* AI PLAYBOOK BAR */
+        .playbook-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0 0;
+        }
+        .playbook-card {
+            background: #0f172a;
+            color: #e2e8f0;
+            border-radius: 1.2rem;
+            padding: 1rem 1rem 0.8rem;
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        .playbook-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 9px 20px rgba(15, 23, 42, 0.35);
+        }
+        .playbook-icon {
+            width: 38px; height: 38px; border-radius: 1rem;
+            background: rgba(255,255,255,0.1);
+            display: grid; place-items: center;
+        }
+        .playbook-title { font-weight: 600; font-size: 0.8rem; }
+        .playbook-text { font-size: 0.7rem; opacity: 0.65; }
+
+        /* Input Section */
+        .input-section {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-2xl);
+            box-shadow: var(--shadow-lg);
+            padding: 3rem;
+            margin: 0 2rem 2rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-group { position: relative; }
+
+        .input-label {
+            display: block;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+        }
+
+        .input-textarea {
+            width: 100%;
+            padding: 1.25rem;
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 140px;
+            transition: all 0.3s ease;
+            background: var(--bg-secondary);
+        }
+
+        .input-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-select {
+            width: 100%;
+            padding: 1.25rem;
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            font-size: 1rem;
+            font-family: inherit;
+            background: var(--bg-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .input-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .quick-examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .example-btn {
+            padding: 1rem 1.5rem;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-align: left;
+        }
+
+        .example-btn:hover {
+            background: var(--primary-gradient);
+            color: white;
+            border-color: transparent;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .process-btn {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 1.25rem 3rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: var(--radius-xl);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 2rem auto;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .process-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .process-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Loading Section */
+        .loading-section {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-2xl);
+            box-shadow: var(--shadow-lg);
+            padding: 4rem;
+            text-align: center;
+            display: none;
+            margin: 0 2rem 2rem;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--border-light);
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 2rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Results Section */
+        .results-section {
+            display: none;
+            margin-bottom: 2rem;
+            margin: 0 2rem 2rem;
+        }
+
+        .results-header {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-2xl);
+            box-shadow: var(--shadow-lg);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .services-status {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .service-card {
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .service-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .service-card.active {
+            background: var(--warning-gradient);
+            color: white;
+            border-color: transparent;
+        }
+
+        .service-card.fallback {
+            background: var(--secondary-gradient);
+            color: white;
+            border-color: transparent;
+        }
+
+        .service-card.error {
+            background: var(--danger-gradient);
+            color: white;
+            border-color: transparent;
+        }
+
+        .service-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .service-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .service-desc {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .result-card {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            padding: 2rem;
+            border: 1px solid var(--border-light);
+            transition: all 0.3s ease;
+        }
+
+        .result-card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .result-card-icon {
+            font-size: 1.5rem;
+            color: #667eea;
+        }
+
+        .result-card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .result-item:last-child { border-bottom: none; }
+
+        .priority-p1 { color: #dc2626; font-weight: 700; }
+        .priority-p2 { color: #ea580c; font-weight: 700; }
+        .priority-p3 { color: #2563eb; font-weight: 700; }
+        .priority-p4 { color: #16a34a; font-weight: 700; }
+
+        .risk-high { color: #dc2626; font-weight: 700; }
+        .risk-medium { color: #ea580c; font-weight: 700; }
+        .risk-low { color: #16a34a; font-weight: 700; }
+
+        .sentiment-positive { color: #16a34a; font-weight: 600; }
+        .sentiment-negative { color: #dc2626; font-weight: 600; }
+        .sentiment-neutral { color: #64748b; font-weight: 600; }
+
+        /* Alert Banner */
+        .alert-banner {
+            background: var(--danger-gradient);
+            color: white;
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            margin: 2rem 0;
+            display: none;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .alert-banner.show { display: flex; animation: slideInDown 0.5s ease; }
+
+        @keyframes slideInDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Recommendations Card */
+        .recommendations-card {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            padding: 2rem;
+            margin-top: 2rem;
+            border: 1px solid var(--border-light);
+        }
+
+        .recommendations-list { list-style: none; padding: 0; }
+        .recommendation-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .recommendation-item:last-child { border-bottom: none; }
+
+        .recommendation-icon { color: #667eea; margin-top: 0.25rem; }
+
+        /* OPS TIMELINE */
+        .timeline-section {
+            background: #fff;
+            border-radius: 1.5rem;
+            box-shadow: var(--shadow-lg);
+            margin: 0 2rem 2.5rem;
+            padding: 1.4rem 1.5rem 1.3rem;
+        }
+        .timeline-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .timeline-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            gap: 0.6rem;
+        }
+        .timeline-item {
+            display: flex;
+            gap: 0.9rem;
+            align-items: flex-start;
+        }
+        .timeline-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 9999px;
+            background: rgba(102, 126, 234, 0.12);
+            display: grid;
+            place-items: center;
+            color: #4f46e5;
+            flex: 0 0 28px;
+        }
+        .timeline-body { flex: 1; }
+        .timeline-text { font-size: 0.78rem; }
+        .timeline-time { font-size: 0.65rem; color: #94a3b8; }
+
+        /* FOOTER STATUS BAR */
+        .footer-bar {
+            position: fixed;
+            left: var(--sidebar-width);
+            right: 0;
+            bottom: 0;
+            height: var(--footer-height);
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.75rem;
+            color: #e2e8f0;
+            font-size: 0.75rem;
+            gap: 1rem;
+            z-index: 60;
+        }
+        .footer-left {
+            display: flex;
+            gap: 0.6rem;
+            align-items: center;
+        }
+        .footer-badge {
+            background: rgba(22, 163, 74, 0.18);
+            color: #22c55e;
+            padding: 0.15rem 0.6rem;
+            border-radius: 9999px;
+            font-size: 0.65rem;
+            display: flex;
+            gap: 0.3rem;
+            align-items: center;
+        }
+        .footer-right {
+            display: flex;
+            gap: 0.7rem;
+            align-items: center;
+        }
+        .footer-pill {
+            background: rgba(15, 23, 42, 0.4);
+            padding: 0.3rem 0.7rem;
+            border-radius: 9999px;
+            display: flex;
+            gap: 0.35rem;
+            align-items: center;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1180px) {
+            body { padding-left: 0; }
+            .side-panel { position: static; width: 100%; height: auto; flex-direction: row; overflow-x: auto; }
+            .footer-bar { left: 0; }
+        }
+
+        @media (max-width: 1024px) {
+            .input-grid { grid-template-columns: 1fr; }
+            .workflow-pipeline { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+            .kpi-strip { margin-left: 1rem; margin-right: 1rem; }
+            .workflow-section, .input-section, .results-section, .timeline-section { margin-left: 1rem; margin-right: 1rem; }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2.5rem; }
+            .header .subtitle { font-size: 1rem; }
+            .tech-stack { gap: 1rem; }
+            .results-grid { grid-template-columns: 1fr; }
+            .quick-examples { grid-template-columns: 1fr; }
+            .footer-bar { flex-wrap: wrap; height: auto; padding: 0.75rem 1rem 0.85rem; }
+        }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.6s ease; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-tertiary); }
+        ::-webkit-scrollbar-thumb { background: var(--border-medium); border-radius: var(--radius-sm); }
+        ::-webkit-scrollbar-thumb:hover { background: #667eea; }
+    </style>
+</head>
+<body>
+    <!-- SIDE GOV/MSP PANEL -->
+    <aside class="side-panel">
+        <div class="side-panel-header">
+            <div class="side-panel-title">
+                <i class="fas fa-building-shield"></i>
+                GoMP / Mission Mode
+            </div>
+            <small>Real-time SLA watch across departments</small>
+        </div>
+
+        <div class="persona-list">
+            <div class="persona-item active" onclick="selectPersona('uidai')">
+                <div class="persona-icon"><i class="fas fa-id-card"></i></div>
+                <div class="persona-body">
+                    <div class="persona-title">UIDAI / eKYC Ops</div>
+                    <div class="persona-meta">5 open · 2 near SLA</div>
+                </div>
+            </div>
+            <div class="persona-item" onclick="selectPersona('MeiTY')">
+                <div class="persona-icon" style="background: rgba(248, 113, 113, 0.1);color:#f97316;"><i class="fas fa-server"></i></div>
+                <div class="persona-body">
+                    <div class="persona-title">MeiTY DC / SDC 2.0</div>
+                    <div class="persona-meta">3 open · 1 P1</div>
+                </div>
+            </div>
+            <div class="persona-item" onclick="selectPersona('education')">
+                <div class="persona-icon" style="background: rgba(34,197,235,0.1);color:#22c55e;"><i class="fas fa-school"></i></div>
+                <div class="persona-body">
+                    <div class="persona-title">Dept of Education</div>
+                    <div class="persona-meta">2 open · seasonal</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="queue-panel-title">Live ticket queue</div>
+        <div class="ticket-list" id="ticket-list">
+            <!-- gets swapped when persona changes -->
+            <div class="ticket-item">
+                <div class="ticket-line">
+                    <span class="ticket-name">AUA Prod — 566 / invalid license</span>
+                    <span class="ticket-badge">P1</span>
+                </div>
+                <div class="ticket-meta">SLA in 27 min · eKYC auth</div>
+            </div>
+            <div class="ticket-item">
+                <div class="ticket-line">
+                    <span class="ticket-name">Face RD timeout from Bhopal</span>
+                    <span class="ticket-badge" style="background: rgba(236, 252, 203, 0.16);">P2</span>
+                </div>
+                <div class="ticket-meta">SLA in 54 min · audit in progress</div>
+            </div>
+            <div class="ticket-item">
+                <div class="ticket-line">
+                    <span class="ticket-name">Sub-AUA report not received</span>
+                    <span class="ticket-badge" style="background: rgba(252, 211, 77, 0.12);">P3</span>
+                </div>
+                <div class="ticket-meta">SLA tomorrow 10:30 am</div>
+            </div>
+        </div>
+
+        <div class="side-panel-footer">
+            <span><i class="fas fa-circle" style="color:#22c55e;font-size:0.5rem;"></i> SLA Guard ON</span>
+            <button onclick="processWorkflow()" style="background: rgba(102,126,234,0.2);border:1px solid rgba(148,163,184,0.25);color:#fff;padding:0.35rem 0.8rem;border-radius:9999px;cursor:pointer;font-size:0.65rem;">
+                Run now
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN UI -->
+    <div class="header">
+        <div class="header-content">
+            <h1><i class="fas fa-brain"></i> AWS GenAI Service Efficiency Platform</h1>
+            <p class="subtitle">Enterprise-Grade AI Workflow for Intelligent Service Management</p>
+            <div class="tech-stack">
+                <div class="tech-item" onclick="openAWSConsole('bedrock')">
+                    <i class="fab fa-aws"></i>
+                    <span>Amazon Bedrock</span>
+                </div>
+                <div class="tech-item" onclick="openAWSConsole('dynamodb')">
+                    <i class="fas fa-database"></i>
+                    <span>DynamoDB</span>
+                </div>
+                <div class="tech-item" onclick="openAWSConsole('lambda')">
+                    <i class="fas fa-bolt"></i>
+                    <span>Lambda</span>
+                </div>
+                <div class="tech-item" onclick="openAWSConsole('sagemaker')">
+                    <i class="fas fa-robot"></i>
+                    <span>SageMaker</span>
+                </div>
+                <div class="tech-item" onclick="openAWSConsole('quicksight')">
+                    <i class="fas fa-chart-line"></i>
+                    <span>QuickSight</span>
+                </div>
+                <div class="tech-item" onclick="openAWSConsole('cloudwatch')">
+                    <i class="fas fa-chart-area"></i>
+                    <span>CloudWatch</span>
+                </div>
+                <div class="tech-item" onclick="openAWSConsole('sns')">
+                    <i class="fas fa-bell"></i>
+                    <span>SNS Alerts</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPI STRIP -->
+    <div class="kpi-strip">
+        <div class="kpi-card">
+            <div class="kpi-title"><i class="fas fa-clock"></i> SLA compliance (last 24h)</div>
+            <div class="kpi-value" id="kpi-sla">92.4%</div>
+            <div class="kpi-meta">Target: 95% · 3 tickets red</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title"><i class="fas fa-user-gear"></i> Technician productivity</div>
+            <div class="kpi-value" id="kpi-tech">+18%</div>
+            <div class="kpi-meta">Auto-triage saved 37 mins</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title"><i class="fas fa-clipboard-list"></i> Request fulfillment</div>
+            <div class="kpi-value">1.3 hrs</div>
+            <div class="kpi-meta"><span class="kpi-badge-green">↑ better than govt avg</span></div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title"><i class="fas fa-bell-exclamation"></i> Breach predicted</div>
+            <div class="kpi-value" id="kpi-breach">2</div>
+            <div class="kpi-meta"><span class="kpi-badge-red">action in 15 mins</span></div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="workflow-section">
+            <div class="workflow-title">
+                <h2>Intelligent AI Pipeline</h2>
+                <p>Complete end-to-end workflow from natural language to actionable insights</p>
+            </div>
+
+            <div class="workflow-pipeline">
+                <div class="workflow-step" id="step-1">
+                    <i class="fas fa-edit step-icon"></i>
+                    <div class="step-title">Natural Language</div>
+                    <div class="step-desc">Text Input</div>
+                </div>
+                <div class="workflow-step" id="step-2">
+                    <i class="fas fa-brain step-icon"></i>
+                    <div class="step-title">AI Analysis</div>
+                    <div class="step-desc">Bedrock + Comprehend</div>
+                </div>
+                <div class="workflow-step" id="step-3">
+                    <i class="fas fa-database step-icon"></i>
+                    <div class="step-title">Data Storage</div>
+                    <div class="step-desc">DynamoDB</div>
+                </div>
+                <div class="workflow-step" id="step-4">
+                    <i class="fas fa-satellite-dish step-icon"></i>
+                    <div class="step-title">Event Trigger</div>
+                    <div class="step-desc">EventBridge</div>
+                </div>
+                <div class="workflow-step" id="step-5">
+                    <i class="fas fa-bolt step-icon"></i>
+                    <div class="step-title">Processing</div>
+                    <div class="step-desc">Lambda</div>
+                </div>
+                <div class="workflow-step" id="step-6">
+                    <i class="fas fa-robot step-icon"></i>
+                    <div class="step-title">ML Prediction</div>
+                    <div class="step-desc">SageMaker</div>
+                </div>
+                <div class="workflow-step" id="step-7">
+                    <i class="fas fa-bell step-icon"></i>
+                    <div class="step-title">Smart Alerts</div>
+                    <div class="step-desc">SNS</div>
+                </div>
+                <div class="workflow-step" id="step-8">
+                    <i class="fas fa-chart-line step-icon"></i>
+                    <div class="step-title">Visualization</div>
+                    <div class="step-desc">QuickSight</div>
+                </div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <div class="progress-text" id="progress-text">Ready to process your request</div>
+            </div>
+
+            <!-- AI PLAYBOOK SHORTCUTS -->
+            <div class="playbook-bar">
+                <div class="playbook-card" onclick="setExample('critical')">
+                    <div class="playbook-icon"><i class="fas fa-fire"></i></div>
+                    <div>
+                        <div class="playbook-title">SLA Guard (P1)</div>
+                        <div class="playbook-text">Predict breach → notify ACS / MD</div>
+                    </div>
+                </div>
+                <div class="playbook-card" onclick="setExample('portal')">
+                    <div class="playbook-icon"><i class="fas fa-gauge-high"></i></div>
+                    <div>
+                        <div class="playbook-title">Portal slow / load issue</div>
+                        <div class="playbook-text">Auto-route to Infra + LB team</div>
+                    </div>
+                </div>
+                <div class="playbook-card" onclick="setExample('payment')">
+                    <div class="playbook-icon"><i class="fas fa-credit-card"></i></div>
+                    <div>
+                        <div class="playbook-title">Payment / PG errors</div>
+                        <div class="playbook-text">Compare 1h trend + send SMS</div>
+                    </div>
+                </div>
+                <div class="playbook-card" onclick="setExample('positive')">
+                    <div class="playbook-icon"><i class="fas fa-badge-check"></i></div>
+                    <div>
+                        <div class="playbook-title">Citizen appreciation</div>
+                        <div class="playbook-text">Store in S3 & flag to comms</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INPUT -->
+        <div class="input-section">
+            <h2 class="section-title">
+                <i class="fas fa-rocket"></i>
+                Test the AI Workflow
+            </h2>
+
+            <div class="input-grid">
+                <div class="input-group">
+                    <label class="input-label" for="user-input">
+                        <i class="fas fa-comment-alt"></i>
+                        Describe your service issue or request
+                    </label>
+                    <textarea 
+                        id="user-input" 
+                        class="input-textarea"
+                        placeholder="Enter your service ticket description here... For example: 'Aadhaar authentication services are experiencing critical failures in Indore region affecting thousands of citizens.'"
+                    ></textarea>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label" for="source-select">
+                        <i class="fas fa-inbox"></i>
+                        Request Source
+                    </label>
+                    <select id="source-select" class="input-select">
+                        <option value="web_portal">🌐 Web Portal</option>
+                        <option value="email">📧 Email</option>
+                        <option value="phone">📞 Phone</option>
+                        <option value="emergency_hotline">🚨 Emergency Hotline</option>
+                        <option value="feedback_form">📝 Feedback Form</option>
+                        <option value="mobile_app">📱 Mobile App</option>
+                        <option value="chat_support">💬 Chat Support</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="quick-examples">
+                <button class="example-btn" onclick="setExample('critical')">
+                    <i class="fas fa-exclamation-triangle" style="color: #dc2626;"></i>
+                    <div>
+                        <div style="font-weight: 600;">Critical System Failure</div>
+                        <div style="font-size: 0.8rem; opacity: 0.7;">Aadhaar authentication down</div>
+                    </div>
+                </button>
+                <button class="example-btn" onclick="setExample('payment')">
+                    <i class="fas fa-credit-card" style="color: #ea580c;"></i>
+                    <div>
+                        <div style="font-weight: 600;">Payment Gateway Issue</div>
+                        <div style="font-size: 0.8rem; opacity: 0.7;">Transaction timeouts</div>
+                    </div>
+                </button>
+                <button class="example-btn" onclick="setExample('portal')">
+                    <i class="fas fa-globe" style="color: #2563eb;"></i>
+                    <div>
+                        <div style="font-weight: 600;">Portal Access Problem</div>
+                        <div style="font-size: 0.8rem; opacity: 0.7;">Slow loading times</div>
+                    </div>
+                </button>
+                <button class="example-btn" onclick="setExample('positive')">
+                    <i class="fas fa-smile" style="color: #16a34a;"></i>
+                    <div>
+                        <div style="font-weight: 600;">Positive Feedback</div>
+                        <div style="font-size: 0.8rem; opacity: 0.7;">Service appreciation</div>
+                    </div>
+                </button>
+            </div>
+
+            <button class="process-btn" onclick="processWorkflow()" id="process-btn">
+                <i class="fas fa-play"></i>
+                Process with AI Workflow
+            </button>
+
+            <div class="alert-banner" id="alert-banner">
+                <i class="fas fa-exclamation-triangle alert-icon"></i>
+                <div class="alert-content">
+                    <div class="alert-title">High Risk Alert Triggered!</div>
+                    <div class="alert-message">This ticket requires immediate attention and has been escalated.</div>
+                    <div style="margin-top: 0.5rem; font-size: 0.9rem;">
+                        📧 Email alert sent | 🔗 <a href="#" onclick="openAWSConsole('sns')" style="color: white; text-decoration: underline;">View SNS Topics</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LOADING -->
+        <div class="loading-section" id="loading-section">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Processing through AI Pipeline</div>
+            <div class="loading-step" id="current-step">Initializing workflow...</div>
+        </div>
+
+        <!-- RESULTS -->
+        <div class="results-section" id="results-section">
+            <div class="results-header">
+                <h2 class="section-title">
+                    <i class="fas fa-chart-pie"></i>
+                    AI Analysis Results
+                </h2>
+
+                <div class="services-status" id="services-status">
+                    <div class="service-card" id="bedrock-status" onclick="openAWSConsole('bedrock')">
+                        <i class="fas fa-brain service-icon"></i>
+                        <div class="service-name">Amazon Bedrock</div>
+                        <div class="service-desc">Claude 3 Sonnet</div>
+                        <div class="service-link">🔗 Console</div>
+                    </div>
+                    <div class="service-card" id="comprehend-status" onclick="openAWSConsole('comprehend')">
+                        <i class="fas fa-language service-icon"></i>
+                        <div class="service-name">Comprehend</div>
+                        <div class="service-desc">NLP Analysis</div>
+                        <div class="service-link">🔗 Console</div>
+                    </div>
+                    <div class="service-card" id="sagemaker-status" onclick="openAWSConsole('sagemaker')">
+                        <i class="fas fa-robot service-icon"></i>
+                        <div class="service-name">SageMaker</div>
+                        <div class="service-desc">ML Prediction</div>
+                        <div class="service-link">🔗 Console</div>
+                    </div>
+                    <div class="service-card" id="fallback-status">
+                        <i class="fas fa-shield-alt service-icon"></i>
+                        <div class="service-name">Fallback AI</div>
+                        <div class="service-desc">Rule-based</div>
+                        <div class="service-link">✅ Active</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="results-grid">
+                <div class="result-card">
+                    <div class="result-card-header">
+                        <i class="fas fa-ticket-alt result-card-icon"></i>
+                        <h3 class="result-card-title">Ticket Information</h3>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Ticket ID</span>
+                        <span class="result-value" id="ticket-id">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Status</span>
+                        <span class="result-value" id="ticket-status">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Processing Time</span>
+                        <span class="result-value" id="processing-time">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Pipeline Steps</span>
+                        <span class="result-value" id="steps-completed">-</span>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-card-header">
+                        <i class="fas fa-brain result-card-icon"></i>
+                        <h3 class="result-card-title">AI Classification</h3>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Department</span>
+                        <span class="result-value" id="department">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Priority Level</span>
+                        <span class="result-value" id="priority">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Category</span>
+                        <span class="result-value" id="category">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Urgency Score</span>
+                        <span class="result-value" id="urgency">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Sentiment</span>
+                        <span class="result-value" id="sentiment">-</span>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-card-header">
+                        <i class="fas fa-robot result-card-icon"></i>
+                        <h3 class="result-card-title">ML Prediction</h3>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">SLA Breach Risk</span>
+                        <span class="result-value" id="breach-probability">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Model Confidence</span>
+                        <span class="result-value" id="ml-confidence">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Model Used</span>
+                        <span class="result-value" id="model-used">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Risk Level</span>
+                        <span class="result-value" id="risk-level">-</span>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-card-header">
+                        <i class="fas fa-bell result-card-icon"></i>
+                        <h3 class="result-card-title">Alert Decision</h3>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Alert Required</span>
+                        <span class="result-value" id="alert-needed">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Alert Level</span>
+                        <span class="result-value" id="alert-level">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Notification Channels</span>
+                        <span class="result-value" id="alert-channels">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Escalation Needed</span>
+                        <span class="result-value" id="escalation-needed">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="recommendations-card">
+                <div class="result-card-header">
+                    <i class="fas fa-lightbulb result-card-icon"></i>
+                    <h3 class="result-card-title">Recommended Actions</h3>
+                </div>
+                <ul class="recommendations-list" id="recommendations-list">
+                    <li class="recommendation-item">
+                        <i class="fas fa-spinner fa-spin recommendation-icon"></i>
+                        <span class="recommendation-text">Processing recommendations...</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- OPS TIMELINE -->
+        <div class="timeline-section" id="timeline-section">
+            <div class="timeline-title"><i class="fas fa-timeline"></i> Last 60 min Ops & SLA actions</div>
+            <ul class="timeline-list" id="timeline-list">
+                <li class="timeline-item">
+                    <div class="timeline-icon"><i class="fas fa-bolt"></i></div>
+                    <div class="timeline-body">
+                        <div class="timeline-text">Lambda escalated P1 Aadhaar failure to MeiTY + UIDAI SPOC</div>
+                        <div class="timeline-time">5 min ago</div>
+                    </div>
+                </li>
+                <li class="timeline-item">
+                    <div class="timeline-icon" style="background: rgba(250, 112, 154, 0.15);color:#f43f5e;"><i class="fas fa-gauge-high"></i></div>
+                    <div class="timeline-body">
+                        <div class="timeline-text">SLA Guard predicted breach for PG timeout in Bhopal (SLA 30m)</div>
+                        <div class="timeline-time">17 min ago</div>
+                    </div>
+                </li>
+                <li class="timeline-item">
+                    <div class="timeline-icon" style="background: rgba(22, 163, 74, 0.12);color:#16a34a;"><i class="fas fa-check-double"></i></div>
+                    <div class="timeline-body">
+                        <div class="timeline-text">Ticket auto-routed to Infra / LB team; technician efficiency ↑</div>
+                        <div class="timeline-time">32 min ago</div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- FOOTER STATUS BAR -->
+    <div class="footer-bar" id="footer-bar">
+        <div class="footer-left">
+            <span class="footer-badge"><i class="fas fa-circle"></i> Govt Ops Mode</span>
+            <span><i class="fas fa-user-shield"></i> Active Persona: <strong id="active-persona-label">UIDAI / eKYC Ops</strong></span>
+        </div>
+        <div class="footer-right">
+            <span class="footer-pill"><i class="fas fa-clock"></i> Next check: 5 min</span>
+            <span class="footer-pill"><i class="fas fa-bell"></i> Alerts: <strong id="footer-alert-count">2</strong></span>
+            <span class="footer-pill"><i class="fas fa-gauge-high"></i> Engine: Healthy</span>
+        </div>
+    </div>
+
+    <script>
+        const examples = {
+            critical: "URGENT: Aadhaar authentication services are experiencing complete system failure across Madhya Pradesh! Thousands of citizens cannot access critical government services including healthcare, banking, and social welfare programs. Multiple districts including Indore, Bhopal, and Gwalior are severely affected. This is a state-wide emergency requiring immediate intervention.",
+            payment: "Payment gateway infrastructure is experiencing severe performance degradation in the Bhopal metropolitan region. Business transactions are failing at a rate of approximately 40% since early morning hours. Merchants across the city are reporting significant revenue losses and customer dissatisfaction. The timeout issues appear to be affecting both online and POS transactions.",
+            portal: "Citizens across the Gwalior region are reporting persistent accessibility issues with the digital services portal. The platform exhibits extremely slow loading times, frequent timeout errors, and intermittent service unavailability. The login authentication system appears to be the primary bottleneck, preventing users from accessing essential government services.",
+            positive: "I want to express my sincere appreciation for the outstanding improvements made to the digital services portal! The new user interface is incredibly intuitive and responsive. Citizens in our district have provided overwhelmingly positive feedback about the enhanced user experience, faster processing times, and improved accessibility features. This transformation has significantly improved public satisfaction with digital government services."
+        };
+
+        function setExample(type) {
+            document.getElementById('user-input').value = examples[type];
+            const sourceSelect = document.getElementById('source-select');
+            const sourceMap = {
+                critical: 'emergency_hotline',
+                payment: 'web_portal',
+                portal: 'web_portal',
+                positive: 'feedback_form'
+            };
+            sourceSelect.value = sourceMap[type] || 'web_portal';
+        }
+
+        async function processWorkflow() {
+            const userInput = document.getElementById('user-input').value.trim();
+            const source = document.getElementById('source-select').value;
+
+            if (!userInput) {
+                showNotification('Please enter a service ticket description.', 'warning');
+                return;
+            }
+
+            document.getElementById('loading-section').style.display = 'block';
+            document.getElementById('results-section').style.display = 'none';
+            document.getElementById('process-btn').disabled = true;
+            document.getElementById('alert-banner').classList.remove('show');
+
+            resetWorkflowSteps();
+
+            try {
+                await simulateWorkflow(userInput, source);
+            } catch (error) {
+                console.error('Workflow error:', error);
+                showNotification('An error occurred during processing. Please try again.', 'error');
+            } finally {
+                document.getElementById('loading-section').style.display = 'none';
+                document.getElementById('process-btn').disabled = false;
+            }
+        }
+
+        function resetWorkflowSteps() {
+            for (let i = 1; i <= 8; i++) {
+                const step = document.getElementById(`step-${i}`);
+                step.classList.remove('active', 'completed', 'error');
+            }
+            document.getElementById('progress-fill').style.width = '0%';
+            document.getElementById('progress-text').textContent = 'Ready to process your request';
+        }
+
+        async function simulateWorkflow(userInput, source) {
+            const steps = [
+                { id: 1, name: 'Natural Language Processing', duration: 800 },
+                { id: 2, name: 'AI Analysis with Bedrock & Comprehend', duration: 2200 },
+                { id: 3, name: 'DynamoDB Ticket Storage', duration: 600 },
+                { id: 4, name: 'EventBridge Event Trigger', duration: 400 },
+                { id: 5, name: 'Lambda Function Processing', duration: 1200 },
+                { id: 6, name: 'SageMaker ML Prediction', duration: 1800 },
+                { id: 7, name: 'SNS Alert Decision Engine', duration: 700 },
+                { id: 8, name: 'QuickSight Data Preparation', duration: 900 }
+            ];
+
+            for (let i = 0; i < steps.length; i++) {
+                const step = steps[i];
+                document.getElementById('current-step').textContent = `Step ${step.id}/8: ${step.name}...`;
+                const stepElement = document.getElementById(`step-${step.id}`);
+                stepElement.classList.add('active');
+
+                const progress = ((i + 1) / steps.length) * 100;
+                document.getElementById('progress-fill').style.width = `${progress}%`;
+                document.getElementById('progress-text').textContent = `Processing: ${progress.toFixed(0)}% Complete`;
+
+                await new Promise(resolve => setTimeout(resolve, step.duration));
+
+                stepElement.classList.remove('active');
+                stepElement.classList.add('completed');
+            }
+
+            const results = generateEnhancedResults(userInput, source);
+            displayResults(results);
+            updateTimelineWith(results);
+            updateKpiWith(results);
+        }
+
+        function generateEnhancedResults(userInput, source) {
+            const text = userInput.toLowerCase();
+            let department = 'Other';
+            let departmentConfidence = 0.7;
+
+            if (text.includes('aadhaar') || text.includes('authentication') || text.includes('identity')) {
+                department = 'UIDAI';
+                departmentConfidence = 0.95;
+            } else if (text.includes('payment') || text.includes('gateway') || text.includes('transaction')) {
+                department = 'MeiTY';
+                departmentConfidence = 0.92;
+            } else if (text.includes('portal') || text.includes('website') || text.includes('digital')) {
+                department = 'DigitalMP';
+                departmentConfidence = 0.88;
+            }
+
+            let priority = 'P3';
+            let urgency = 5;
+            if (text.includes('critical') || text.includes('urgent') || text.includes('emergency') || text.includes('failure')) {
+                priority = 'P1';
+                urgency = 9;
+            } else if (text.includes('severe') || text.includes('significant') || text.includes('major')) {
+                priority = 'P2';
+                urgency = 7;
+            } else if (text.includes('thank') || text.includes('excellent') || text.includes('appreciation')) {
+                priority = 'P4';
+                urgency = 2;
+            }
+
+            let sentiment = 'neutral';
+            if (text.includes('thank') || text.includes('excellent') || text.includes('outstanding') || text.includes('appreciation')) {
+                sentiment = 'positive';
+            } else if (text.includes('critical') || text.includes('failure') || text.includes('severe') || text.includes('urgent')) {
+                sentiment = 'negative';
+            }
+
+            let category = 'Other';
+            if (text.includes('authentication') || text.includes('aadhaar') || text.includes('login')) {
+                category = 'Authentication';
+            } else if (text.includes('payment') || text.includes('gateway') || text.includes('transaction')) {
+                category = 'Payment';
+            } else if (text.includes('portal') || text.includes('website') || text.includes('interface')) {
+                category = 'Portal';
+            } else if (text.includes('network') || text.includes('connectivity') || text.includes('timeout')) {
+                category = 'Network';
+            }
+
+            let breachProbability = 0.3;
+            const priorityWeight = { 'P1': 0.9, 'P2': 0.6, 'P3': 0.3, 'P4': 0.1 };
+            const departmentWeight = { 'UIDAI': 0.8, 'MeiTY': 0.6, 'DigitalMP': 0.4, 'Other': 0.3 };
+            const sentimentWeight = { 'negative': 1.3, 'neutral': 1.0, 'positive': 0.7 };
+
+            breachProbability = (priorityWeight[priority] * 0.5 +
+                               departmentWeight[department] * 0.3 +
+                               (urgency / 10) * 0.2) * sentimentWeight[sentiment];
+
+            breachProbability = Math.max(0, Math.min(1, breachProbability + (Math.random() - 0.5) * 0.1));
+
+            const ticketId = `TKT-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
+
+            return {
+                ticketId,
+                status: 'SUCCESS',
+                processingTime: (Math.random() * 2 + 2).toFixed(2),
+                stepsCompleted: '8/8',
+                department,
+                departmentConfidence,
+                priority,
+                category,
+                urgency,
+                sentiment,
+                breachProbability,
+                mlConfidence: (Math.random() * 0.15 + 0.85).toFixed(3),
+                modelUsed: Math.random() > 0.6 ? 'sagemaker-ml-v2.1' : 'intelligent-fallback-v2.0',
+                alertNeeded: breachProbability > 0.7,
+                alertLevel: breachProbability > 0.9 ? 'critical' : breachProbability > 0.7 ? 'high' : breachProbability > 0.5 ? 'medium' : 'low',
+                escalationNeeded: breachProbability > 0.8,
+                servicesUsed: {
+                    bedrock: Math.random() > 0.4,
+                    comprehend: Math.random() > 0.2,
+                    sagemaker: Math.random() > 0.5,
+                    fallback: true
+                }
+            };
+        }
+
+        function displayResults(results) {
+            updateServiceStatus(results.servicesUsed);
+
+            document.getElementById('ticket-id').textContent = results.ticketId;
+            document.getElementById('ticket-status').textContent = results.status;
+            document.getElementById('processing-time').textContent = `${results.processingTime}s`;
+            document.getElementById('steps-completed').textContent = results.stepsCompleted;
+
+            document.getElementById('department').textContent = results.department;
+            const priorityElement = document.getElementById('priority');
+            priorityElement.textContent = results.priority;
+            priorityElement.className = `result-value priority-${results.priority.toLowerCase()}`;
+
+            document.getElementById('category').textContent = results.category;
+            document.getElementById('urgency').textContent = `${results.urgency}/10`;
+
+            const sentimentElement = document.getElementById('sentiment');
+            sentimentElement.textContent = results.sentiment.charAt(0).toUpperCase() + results.sentiment.slice(1);
+            sentimentElement.className = `result-value sentiment-${results.sentiment}`;
+
+            const breachElement = document.getElementById('breach-probability');
+            breachElement.textContent = `${(results.breachProbability * 100).toFixed(1)}%`;
+
+            document.getElementById('ml-confidence').textContent = `${(results.mlConfidence * 100).toFixed(1)}%`;
+            document.getElementById('model-used').textContent = results.modelUsed;
+
+            const riskElement = document.getElementById('risk-level');
+            const riskLevel = results.breachProbability > 0.7 ? 'High' : results.breachProbability > 0.4 ? 'Medium' : 'Low';
+            riskElement.textContent = riskLevel;
+            riskElement.className = `result-value risk-${riskLevel.toLowerCase()}`;
+
+            document.getElementById('alert-needed').textContent = results.alertNeeded ? 'Yes' : 'No';
+            document.getElementById('alert-level').textContent = results.alertLevel.charAt(0).toUpperCase() + results.alertLevel.slice(1);
+            document.getElementById('alert-channels').textContent = getAlertChannels(results.alertLevel);
+            document.getElementById('escalation-needed').textContent = results.escalationNeeded ? 'Yes' : 'No';
+
+            const actions = getEnhancedRecommendations(results);
+            const recommendationsList = document.getElementById('recommendations-list');
+            recommendationsList.innerHTML = actions.map(action => `
+                <li class="recommendation-item">
+                    <i class="fas fa-check-circle recommendation-icon"></i>
+                    <span class="recommendation-text">${action}</span>
+                </li>
+            `).join('');
+
+            if (results.alertNeeded) {
+                document.getElementById('alert-banner').classList.add('show');
+                document.getElementById('footer-alert-count').textContent = parseInt(document.getElementById('footer-alert-count').textContent) + 1;
+            }
+
+            const resultsSection = document.getElementById('results-section');
+            resultsSection.style.display = 'block';
+            resultsSection.classList.add('fade-in');
+
+            document.getElementById('progress-text').textContent = 'Processing Complete - Results Ready';
+        }
+
+        function updateServiceStatus(servicesUsed) {
+            const services = ['bedrock', 'comprehend', 'sagemaker', 'fallback'];
+            services.forEach(service => {
+                const element = document.getElementById(`${service}-status`);
+                element.classList.remove('active', 'fallback', 'error');
+
+                if (servicesUsed[service]) {
+                    if (service === 'fallback') {
+                        element.classList.add('fallback');
+                    } else {
+                        element.classList.add('active');
+                    }
+                } else {
+                    element.classList.add('error');
+                }
+            });
+        }
+
+        function getAlertChannels(alertLevel) {
+            const channelMap = {
+                critical: 'Email, SMS, Slack, Phone, Teams',
+                high: 'Email, Slack, Teams',
+                medium: 'Email, Slack',
+                low: 'Email'
+            };
+            return channelMap[alertLevel] || 'None';
+        }
+
+        function getEnhancedRecommendations(results) {
+            const actions = [];
+
+            if (results.breachProbability > 0.9) {
+                actions.push('🚨 Activate emergency response protocol immediately');
+                actions.push('📞 Notify senior management and on-call engineers');
+                actions.push('🏢 Establish incident command center');
+            } else if (results.breachProbability > 0.7) {
+                actions.push('⚡ Escalate to senior support team within 15 minutes');
+                actions.push('📊 Monitor system metrics and performance indicators');
+            }
+
+            if (results.priority === 'P1') {
+                actions.push('👨‍💻 Assign dedicated engineer immediately');
+                actions.push('📈 Set up real-time monitoring dashboard');
+            }
+
+            if (results.department === 'UIDAI') {
+                actions.push('🆔 Contact UIDAI technical operations team');
+                actions.push('📊 Check Aadhaar service health dashboard');
+                actions.push('🔍 Verify authentication service endpoints');
+            } else if (results.department === 'MeiTY') {
+                actions.push('💳 Engage payment gateway provider support');
+                actions.push('📈 Monitor transaction success rates and latency');
+                actions.push('🔄 Implement payment retry mechanisms');
+            } else if (results.department === 'DigitalMP') {
+                actions.push('🌐 Check portal infrastructure health');
+                actions.push('📝 Review recent deployment logs');
+                actions.push('⚡ Verify CDN and load balancer status');
+            }
+
+            if (results.sentiment === 'negative') {
+                actions.push('📢 Prepare public communication strategy');
+                actions.push('📱 Update service status page');
+                actions.push('👥 Coordinate with customer relations team');
+            } else if (results.sentiment === 'positive') {
+                actions.push('📝 Document successful practices for replication');
+                actions.push('🎯 Share positive feedback with development team');
+            }
+
+            if (actions.length === 0) {
+                actions.push('📋 Follow standard ticket resolution workflow');
+                actions.push('⏰ Monitor progress against SLA timelines');
+                actions.push('📊 Update stakeholders on resolution status');
+            }
+
+            return actions;
+        }
+
+        // persona switcher
+        function selectPersona(key) {
+            document.querySelectorAll('.persona-item').forEach(el => el.classList.remove('active'));
+            const label = document.getElementById('active-persona-label');
+            const ticketList = document.getElementById('ticket-list');
+
+            if (key === 'uidai') {
+                document.querySelectorAll('.persona-item')[0].classList.add('active');
+                label.textContent = 'UIDAI / eKYC Ops';
+                ticketList.innerHTML = `
+                    <div class="ticket-item">
+                        <div class="ticket-line">
+                            <span class="ticket-name">AUA Prod — 566 / invalid license</span>
+                            <span class="ticket-badge">P1</span>
+                        </div>
+                        <div class="ticket-meta">SLA in 27 min · eKYC auth</div>
+                    </div>
+                    <div class="ticket-item">
+                        <div class="ticket-line">
+                            <span class="ticket-name">Face RD timeout from Bhopal</span>
+                            <span class="ticket-badge" style="background: rgba(236, 252, 203, 0.16);">P2</span>
+                        </div>
+                        <div class="ticket-meta">SLA in 54 min · audit in progress</div>
+                    </div>
+                    <div class="ticket-item">
+                        <div class="ticket-line">
+                            <span class="ticket-name">Sub-AUA report not received</span>
+                            <span class="ticket-badge" style="background: rgba(252, 211, 77, 0.12);">P3</span>
+                        </div>
+                        <div class="ticket-meta">SLA tomorrow 10:30 am</div>
+                    </div>
+                `;
+            } else if (key === 'MeiTY') {
+                document.querySelectorAll('.persona-item')[1].classList.add('active');
+                label.textContent = 'MeiTY DC / SDC 2.0';
+                ticketList.innerHTML = `
+                    <div class="ticket-item">
+                        <div class="ticket-line">
+                            <span class="ticket-name">SDC 2.0 load balancer high CPU</span>
+                            <span class="ticket-badge">P1</span>
+                        </div>
+                        <div class="ticket-meta">SLA in 41 min · infra</div>
+                    </div>
+                    <div class="ticket-item">
+                        <div class="ticket-line">
+                            <span class="ticket-name">New URL not reachable from NIC</span>
+                            <span class="ticket-badge" style="background: rgba(252, 211, 77, 0.12);">P3</span>
+                        </div>
+                        <div class="ticket-meta">SLA today 4:00 pm</div>
+                    </div>
+                `;
+            } else {
+                document.querySelectorAll('.persona-item')[2].classList.add('active');
+                label.textContent = 'Dept of Education';
+                ticketList.innerHTML = `
+                    <div class="ticket-item">
+                        <div class="ticket-line">
+                            <span class="ticket-name">Exam portal slow for students</span>
+                            <span class="ticket-badge">P2</span>
+                        </div>
+                        <div class="ticket-meta">SLA in 3 hrs · peak traffic</div>
+                    </div>
+                    <div class="ticket-item">
+                        <div class="ticket-line">
+                            <span class="ticket-name">SMS delivery delay — CDAC</span>
+                            <span class="ticket-badge" style="background: rgba(252, 211, 77, 0.12);">P3</span>
+                        </div>
+                        <div class="ticket-meta">SLA today 6:30 pm</div>
+                    </div>
+                `;
+            }
+        }
+
+        // AWS Console URLs
+        const AWS_REGION = 'us-east-1';
+        const AWS_CONSOLE_URLS = {
+            bedrock: `https://console.aws.amazon.com/bedrock/home?region=${AWS_REGION}#/`,
+            dynamodb: `https://console.aws.amazon.com/dynamodbv2/home?region=${AWS_REGION}#tables`,
+            lambda: `https://console.aws.amazon.com/lambda/home?region=${AWS_REGION}#/functions`,
+            sagemaker: `https://console.aws.amazon.com/sagemaker/home?region=${AWS_REGION}#/endpoints`,
+            quicksight: `https://console.aws.amazon.com/quicksight/sn/dashboards`,
+            cloudwatch: `https://console.aws.amazon.com/cloudwatch/home?region=${AWS_REGION}#alarmsV2:`,
+            sns: `https://console.aws.amazon.com/sns/v3/home?region=${AWS_REGION}#/topics`,
+            comprehend: `https://console.aws.amazon.com/comprehend/v2/home?region=${AWS_REGION}#classification`,
+            ses: `https://console.aws.amazon.com/ses/home?region=${AWS_REGION}#/identities`
+        };
+
+        function openAWSConsole(service) {
+            const url = AWS_CONSOLE_URLS[service];
+            if (url) {
+                window.open(url, '_blank');
+                showNotification(`Opening ${service.toUpperCase()} console...`, 'info');
+            } else {
+                showNotification(`Console URL not found for ${service}`, 'warning');
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            if (!document.querySelector('#notification-styles')) {
+                const styles = document.createElement('style');
+                styles.id = 'notification-styles';
+                styles.textContent = `
+                    .notification {
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        background: white;
+                        border-radius: 8px;
+                        padding: 1rem 1.5rem;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                        display: flex;
+                        align-items: center;
+                        gap: 0.75rem;
+                        z-index: 1000;
+                        min-width: 300px;
+                        animation: slideInRight 0.3s ease;
+                        border-left: 4px solid #3b82f6;
+                    }
+                    .notification-info { border-left-color: #3b82f6; }
+                    .notification-success { border-left-color: #10b981; }
+                    .notification-warning { border-left-color: #f59e0b; }
+                    .notification-error { border-left-color: #ef4444; }
+                    .notification-close {
+                        background: none;
+                        border: none;
+                        cursor: pointer;
+                        opacity: 0.5;
+                        margin-left: auto;
+                    }
+                    .notification-close:hover { opacity: 1; }
+                    @keyframes slideInRight {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(styles);
+            }
+
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+
+            const icons = {
+                info: 'fa-info-circle',
+                success: 'fa-check-circle',
+                warning: 'fa-exclamation-triangle',
+                error: 'fa-times-circle'
+            };
+
+            notification.innerHTML = `
+                <i class="fas ${icons[type] || icons.info}"></i>
+                <span>${message}</span>
+                <button onclick="this.parentElement.remove()" class="notification-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+
+            document.body.appendChild(notification);
+            setTimeout(() => { if (notification.parentElement) notification.remove(); }, 5000);
+        }
+
+        function updateTimelineWith(results) {
+            const list = document.getElementById('timeline-list');
+            const li = document.createElement('li');
+            li.className = 'timeline-item';
+            li.innerHTML = `
+                <div class="timeline-icon" style="${results.alertNeeded ? 'background: rgba(248,113,113,0.12);color:#ef4444;' : ''}">
+                    <i class="fas ${results.alertNeeded ? 'fa-bell' : 'fa-circle-info'}"></i>
+                </div>
+                <div class="timeline-body">
+                    <div class="timeline-text">
+                        ${results.alertNeeded
+                            ? `SLA Guard escalated <strong>${results.department}</strong> ticket ${results.ticketId} (${(results.breachProbability*100).toFixed(1)}% risk)`
+                            : `Ticket ${results.ticketId} processed successfully with low SLA risk`}
+                    </div>
+                    <div class="timeline-time">just now</div>
+                </div>
+            `;
+            list.prepend(li);
+        }
+
+        function updateKpiWith(results) {
+            const slaEl = document.getElementById('kpi-sla');
+            const breachEl = document.getElementById('kpi-breach');
+            let slaVal = parseFloat(slaEl.textContent);
+            let breachVal = parseInt(breachEl.textContent);
+
+            if (results.alertNeeded) {
+                slaVal = Math.max(80, slaVal - 0.4);
+                breachVal = breachVal + 1;
+            } else {
+                slaVal = Math.min(99.5, slaVal + 0.15);
+            }
+
+            slaEl.textContent = slaVal.toFixed(1) + '%';
+            breachEl.textContent = breachVal;
+        }
+
+        // init
+        window.onload = function() {
+            setExample('critical');
+            showNotification('🚀 AWS GenAI Workflow UI loaded successfully!', 'success');
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+# Ignore all JSON files
+*.json
+
+# Ignore all Markdown files
+*.md
+
+temp

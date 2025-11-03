@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered SLA Guard - Breach Mitigation Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header .subtitle {
+            font-size: 1.3em;
+            margin-bottom: 10px;
+            color: #ecf0f1;
+        }
+        
+        .controls {
+            background: #34495e;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .control-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 1em;
+        }
+        
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .control-btn.danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+        
+        .control-btn.success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+        }
+        
+        .mitigation-flow {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+        
+        .ticket-creation {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section-title {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .create-btn {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1em;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        .create-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+        }
+        
+        .ai-pipeline {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .pipeline-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .pipeline-step {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 5px solid #3498db;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .pipeline-step.active {
+            border-left-color: #27ae60;
+            background: linear-gradient(90deg, rgba(39, 174, 96, 0.1), #f8f9fa);
+            animation: pulse-green 2s infinite;
+        }
+        
+        .pipeline-step.processing {
+            border-left-color: #f39c12;
+            background: linear-gradient(90deg, rgba(243, 156, 18, 0.1), #f8f9fa);
+            animation: pulse-orange 2s infinite;
+        }
+        
+        .pipeline-step.alert {
+            border-left-color: #e74c3c;
+            background: linear-gradient(90deg, rgba(231, 76, 60, 0.1), #f8f9fa);
+            animation: pulse-red 2s infinite;
+        }
+        
+        @keyframes pulse-green {
+            0%, 100% { box-shadow: 0 0 5px rgba(39, 174, 96, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(39, 174, 96, 0.6); }
+        }
+        
+        @keyframes pulse-orange {
+            0%, 100% { box-shadow: 0 0 5px rgba(243, 156, 18, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(243, 156, 18, 0.6); }
+        }
+        
+        @keyframes pulse-red {
+            0%, 100% { box-shadow: 0 0 5px rgba(231, 76, 60, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(231, 76, 60, 0.6); }
+        }
+        
+        .step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .step-title {
+            font-weight: bold;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .step-status {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-idle {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .status-active {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .status-processing {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .status-alert {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .step-details {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            line-height: 1.4;
+        }
+        
+        .ai-prediction {
+            background: #2c3e50;
+            color: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .prediction-result {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .breach-probability {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        
+        .prob-high {
+            color: #e74c3c;
+        }
+        
+        .prob-medium {
+            color: #f39c12;
+        }
+        
+        .prob-low {
+            color: #27ae60;
+        }
+        
+        .mitigation-actions {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .action-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 5px solid #3498db;
+            transition: all 0.3s ease;
+        }
+        
+        .action-item.executed {
+            border-left-color: #27ae60;
+            background: linear-gradient(90deg, rgba(39, 174, 96, 0.1), #f8f9fa);
+        }
+        
+        .action-item.pending {
+            border-left-color: #f39c12;
+            background: linear-gradient(90deg, rgba(243, 156, 18, 0.1), #f8f9fa);
+        }
+        
+        .action-item.critical {
+            border-left-color: #e74c3c;
+            background: linear-gradient(90deg, rgba(231, 76, 60, 0.1), #f8f9fa);
+        }
+        
+        .action-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .action-title {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .action-status {
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.7em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-executed {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .status-pending {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .status-critical {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .action-description {
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+        
+        .metrics-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #2c3e50;
+            color: white;
+        }
+        
+        .metric-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: scale(1.05);
+            background: rgba(52, 152, 219, 0.2);
+        }
+        
+        .metric-value {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 8px;
+        }
+        
+        .metric-label {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+        
+        .live-log {
+            background: white;
+            margin: 20px;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .log-container {
+            background: #2c3e50;
+            color: #ecf0f1;
+            border-radius: 10px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            max-height: 400px;
+            overflow-y: auto;
+            line-height: 1.5;
+        }
+        
+        .log-entry {
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .log-timestamp {
+            color: #3498db;
+            font-weight: bold;
+        }
+        
+        .log-service {
+            color: #9b59b6;
+            font-weight: bold;
+        }
+        
+        .log-level-info {
+            color: #27ae60;
+        }
+        
+        .log-level-warn {
+            color: #f39c12;
+        }
+        
+        .log-level-error {
+            color: #e74c3c;
+        }
+        
+        .log-level-success {
+            color: #2ecc71;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #27ae60;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1001;
+            max-width: 400px;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.error {
+            background: #e74c3c;
+        }
+        
+        .notification.warning {
+            background: #f39c12;
+        }
+        
+        .notification.info {
+            background: #3498db;
+        }
+        
+        @media (max-width: 1200px) {
+            .mitigation-flow {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .metrics-panel {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ AI-Powered SLA Guard Agent</h1>
+            <div class="subtitle">Real-Time SLA Breach Prediction & Mitigation System</div>
+            <p>AWS-Native Components: Lambda • SageMaker • Step Functions • QuickSight</p>
+            <p>Innovation-Brigade Account (508955320780) | <span id="current-time"></span></p>
+        </div>
+        
+        <div class="controls">
+            <button class="control-btn" onclick="createNormalTicket()">🎫 Normal Ticket</button>
+            <button class="control-btn" onclick="createHighRiskTicket()">⚠️ High Risk Ticket</button>
+            <button class="control-btn danger" onclick="createCriticalTicket()">🚨 Critical Breach Risk</button>
+            <button class="control-btn success" onclick="demonstrateMitigation()">🤖 AI Mitigation Demo</button>
+            <button class="control-btn" onclick="clearLogs()">🗑️ Clear Logs</button>
+        </div>
+        
+        <div class="mitigation-flow">
+            <!-- Ticket Creation Panel -->
+            <div class="ticket-creation">
+                <div class="section-title">🎫 Create SLA Ticket</div>
+                
+                <div class="form-group">
+                    <label for="ticket-priority">Priority Level</label>
+                    <select id="ticket-priority">
+                        <option value="Low">Low Priority</option>
+                        <option value="Medium">Medium Priority</option>
+                        <option value="High">High Priority</option>
+                        <option value="Critical">Critical Priority</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="ticket-department">Department</label>
+                    <select id="ticket-department">
+                        <option value="IT Support">IT Support</option>
+                        <option value="Customer Service">Customer Service</option>
+                        <option value="Technical">Technical Support</option>
+                        <option value="Sales">Sales Support</option>
+                        <option value="Finance">Finance</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="ticket-customer">Customer Tier</label>
+                    <select id="ticket-customer">
+                        <option value="Bronze">Bronze</option>
+                        <option value="Silver">Silver</option>
+                        <option value="Gold">Gold</option>
+                        <option value="Platinum">Platinum</option>
+                        <option value="Enterprise">Enterprise</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="ticket-sla">SLA Deadline (Hours)</label>
+                    <input type="number" id="ticket-sla" value="24" min="1" max="168">
+                </div>
+                
+                <div class="form-group">
+                    <label for="ticket-description">Issue Description</label>
+                    <textarea id="ticket-description" rows="3" placeholder="Describe the issue..."></textarea>
+                </div>
+                
+                <button class="create-btn" onclick="createCustomTicket()">🚀 Create & Analyze</button>
+            </div>
+            
+            <!-- AI Pipeline -->
+            <div class="ai-pipeline">
+                <div class="section-title">🤖 AI-Powered Processing Pipeline</div>
+                
+                <div class="pipeline-steps">
+                    <div class="pipeline-step" id="step-lambda">
+                        <div class="step-header">
+                            <div class="step-title">⚡ Lambda Orchestration</div>
+                            <div class="step-status status-idle" id="status-lambda">Idle</div>
+                        </div>
+                        <div class="step-details" id="details-lambda">
+                            Waiting for ticket to process...
+                        </div>
+                    </div>
+                    
+                    <div class="pipeline-step" id="step-sagemaker">
+                        <div class="step-header">
+                            <div class="step-title">🧠 SageMaker ML Prediction</div>
+                            <div class="step-status status-idle" id="status-sagemaker">Idle</div>
+                        </div>
+                        <div class="step-details" id="details-sagemaker">
+                            Ready for SLA breach prediction...
+                        </div>
+                        <div class="ai-prediction" id="prediction-result" style="display: none;">
+                            <div class="prediction-result">
+                                <span>Breach Probability:</span>
+                                <span class="breach-probability" id="breach-prob">0%</span>
+                            </div>
+                            <div>Confidence: <span id="confidence">0%</span></div>
+                            <div>Revenue Impact: $<span id="revenue-impact">0</span>K</div>
+                        </div>
+                    </div>
+                    
+                    <div class="pipeline-step" id="step-stepfunctions">
+                        <div class="step-header">
+                            <div class="step-title">🔄 Step Functions Workflow</div>
+                            <div class="step-status status-idle" id="status-stepfunctions">Idle</div>
+                        </div>
+                        <div class="step-details" id="details-stepfunctions">
+                            Escalation workflow ready...
+                        </div>
+                    </div>
+                    
+                    <div class="pipeline-step" id="step-quicksight">
+                        <div class="step-header">
+                            <div class="step-title">📊 QuickSight Analytics</div>
+                            <div class="step-status status-idle" id="status-quicksight">Idle</div>
+                        </div>
+                        <div class="step-details" id="details-quicksight">
+                            Dashboard ready for updates...
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mitigation Actions -->
+            <div class="mitigation-actions">
+                <div class="section-title">🛡️ AI Mitigation Actions</div>
+                
+                <div id="mitigation-list">
+                    <div class="action-item">
+                        <div class="action-header">
+                            <div class="action-title">System Ready</div>
+                            <div class="action-status status-executed">Ready</div>
+                        </div>
+                        <div class="action-description">
+                            AI-powered SLA Guard is monitoring for breach risks
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="metrics-panel">
+            <div class="metric-card">
+                <div class="metric-value" id="total-tickets">0</div>
+                <div class="metric-label">Total Tickets Processed</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="breaches-prevented">0</div>
+                <div class="metric-label">SLA Breaches Prevented</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="avg-prediction-accuracy">94.2%</div>
+                <div class="metric-label">ML Prediction Accuracy</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="revenue-protected">$0K</div>
+                <div class="metric-label">Revenue Protected</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="response-time">1.2s</div>
+                <div class="metric-label">Avg AI Response Time</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="sla-compliance">95.8%</div>
+                <div class="metric-label">SLA Compliance Rate</div>
+            </div>
+        </div>
+        
+        <div class="live-log">
+            <div class="section-title">📋 Real-Time AI Processing Log</div>
+            <div class="log-container" id="live-log">
+                <div class="log-entry">
+                    <span class="log-timestamp">[00:00:00]</span>
+                    <span class="log-service">[SYSTEM]</span>
+                    <span class="log-level-info">[INFO]</span>
+                    AI-Powered SLA Guard Agent initialized and ready
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification -->
+    <div id="notification" class="notification">
+        <span id="notification-text"></span>
+    </div>
+    
+    <script>
+        // Global state
+        let ticketCounter = 1;
+        let totalTickets = 0;
+        let breachesPrevented = 0;
+        let revenueProtected = 0;
+        let currentTicket = null;
+        
+        // Real-time clock
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleString();
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+        
+        // Ticket creation functions
+        function createNormalTicket() {
+            const ticket = {
+                id: `TKT-${String(ticketCounter++).padStart(4, '0')}`,
+                priority: 'Medium',
+                department: 'IT Support',
+                customerTier: 'Silver',
+                slaHours: 24,
+                description: 'Standard system performance issue',
+                breachProbability: 0.15 + Math.random() * 0.25,
+                revenueImpact: 15000 + Math.random() * 35000
+            };
+            
+            processTicketThroughAI(ticket);
+        }
+        
+        function createHighRiskTicket() {
+            const ticket = {
+                id: `TKT-${String(ticketCounter++).padStart(4, '0')}`,
+                priority: 'High',
+                department: 'Customer Service',
+                customerTier: 'Gold',
+                slaHours: 8,
+                description: 'Customer-facing service degradation',
+                breachProbability: 0.55 + Math.random() * 0.25,
+                revenueImpact: 75000 + Math.random() * 75000
+            };
+            
+            processTicketThroughAI(ticket);
+        }
+        
+        function createCriticalTicket() {
+            const ticket = {
+                id: `TKT-${String(ticketCounter++).padStart(4, '0')}`,
+                priority: 'Critical',
+                department: 'Technical',
+                customerTier: 'Enterprise',
+                slaHours: 4,
+                description: 'CRITICAL: Production outage affecting enterprise customers',
+                breachProbability: 0.85 + Math.random() * 0.12,
+                revenueImpact: 150000 + Math.random() * 350000
+            };
+            
+            processTicketThroughAI(ticket);
+        }
+        
+        function createCustomTicket() {
+            const priority = document.getElementById('ticket-priority').value;
+            const department = document.getElementById('ticket-department').value;
+            const customerTier = document.getElementById('ticket-customer').value;
+            const slaHours = parseInt(document.getElementById('ticket-sla').value);
+            const description = document.getElementById('ticket-description').value || 'Custom ticket';
+            
+            // Calculate breach probability based on inputs
+            let baseProbability = 0.1;
+            if (priority === 'High') baseProbability = 0.5;
+            if (priority === 'Critical') baseProbability = 0.8;
+            
+            // Adjust for SLA deadline
+            if (slaHours <= 4) baseProbability += 0.2;
+            else if (slaHours <= 8) baseProbability += 0.1;
+            
+            // Adjust for customer tier
+            const tierMultiplier = {
+                'Bronze': 0.8,
+                'Silver': 1.0,
+                'Gold': 1.2,
+                'Platinum': 1.4,
+                'Enterprise': 1.6
+            };
+            
+            const revenueBase = {
+                'Bronze': 10000,
+                'Silver': 25000,
+                'Gold': 50000,
+                'Platinum': 100000,
+                'Enterprise': 200000
+            };
+            
+            const ticket = {
+                id: `TKT-${String(ticketCounter++).padStart(4, '0')}`,
+                priority,
+                department,
+                customerTier,
+                slaHours,
+                description,
+                breachProbability: Math.min(0.95, baseProbability + Math.random() * 0.1),
+                revenueImpact: revenueBase[customerTier] * tierMultiplier[customerTier] * (0.5 + Math.random())
+            };
+            
+            processTicketThroughAI(ticket);
+        }
+        
+        function demonstrateMitigation() {
+            showNotification('🤖 Starting AI Mitigation Demonstration...', 'info');
+            
+            // Create a high-risk ticket and show full mitigation process
+            const demoTicket = {
+                id: `DEMO-${String(ticketCounter++).padStart(3, '0')}`,
+                priority: 'Critical',
+                department: 'Customer Service',
+                customerTier: 'Enterprise',
+                slaHours: 2,
+                description: 'DEMO: Enterprise customer payment system failure',
+                breachProbability: 0.89,
+                revenueImpact: 275000
+            };
+            
+            processTicketThroughAI(demoTicket, true);
+        }
+        
+        function processTicketThroughAI(ticket, isDemo = false) {
+            currentTicket = ticket;
+            totalTickets++;
+            updateMetrics();
+            
+            logMessage('SYSTEM', 'info', `New ticket created: ${ticket.id} (${ticket.priority})`);
+            showNotification(`🎫 Processing ticket: ${ticket.id}`, 'info');
+            
+            // Step 1: Lambda Orchestration
+            setTimeout(() => {
+                setStepStatus('lambda', 'processing');
+                setStepDetails('lambda', `Processing ${ticket.id} - Extracting features and routing to ML model`);
+                logMessage('LAMBDA', 'info', `Orchestrating processing for ${ticket.id}`);
+                logMessage('LAMBDA', 'info', `Features extracted: Priority=${ticket.priority}, SLA=${ticket.slaHours}h, Customer=${ticket.customerTier}`);
+                
+                // Step 2: SageMaker ML Prediction
+                setTimeout(() => {
+                    setStepStatus('lambda', 'active');
+                    setStepStatus('sagemaker', 'processing');
+                    setStepDetails('sagemaker', `Running XGBoost model on ${ticket.id} features...`);
+                    logMessage('SAGEMAKER', 'info', `ML model inference started for ${ticket.id}`);
+                    
+                    setTimeout(() => {
+                        // Show prediction results
+                        const confidence = 85 + Math.random() * 12;
+                        showPredictionResult(ticket.breachProbability, confidence, ticket.revenueImpact);
+                        
+                        setStepStatus('sagemaker', 'alert');
+                        setStepDetails('sagemaker', `PREDICTION: ${(ticket.breachProbability * 100).toFixed(1)}% breach probability detected!`);
+                        logMessage('SAGEMAKER', 'warn', `High breach risk detected: ${(ticket.breachProbability * 100).toFixed(1)}%`);
+                        logMessage('SAGEMAKER', 'info', `Model confidence: ${confidence.toFixed(1)}%`);
+                        
+                        // Step 3: Step Functions Workflow
+                        setTimeout(() => {
+                            setStepStatus('stepfunctions', 'processing');
+                            setStepDetails('stepfunctions', `Executing escalation workflow for high-risk ticket ${ticket.id}`);
+                            logMessage('STEPFUNCTIONS', 'info', `Workflow execution started for ${ticket.id}`);
+                            
+                            // Trigger mitigation actions
+                            triggerMitigationActions(ticket, isDemo);
+                            
+                            setTimeout(() => {
+                                setStepStatus('stepfunctions', 'active');
+                                setStepDetails('stepfunctions', `Workflow completed - Mitigation actions triggered`);
+                                logMessage('STEPFUNCTIONS', 'success', `Escalation workflow completed successfully`);
+                                
+                                // Step 4: QuickSight Analytics
+                                setTimeout(() => {
+                                    setStepStatus('quicksight', 'processing');
+                                    setStepDetails('quicksight', `Updating executive dashboard with ${ticket.id} analytics`);
+                                    logMessage('QUICKSIGHT', 'info', `Dashboard refresh initiated`);
+                                    
+                                    setTimeout(() => {
+                                        setStepStatus('quicksight', 'active');
+                                        setStepDetails('quicksight', `Dashboard updated - Real-time SLA metrics available`);
+                                        logMessage('QUICKSIGHT', 'success', `Executive dashboard updated with latest SLA metrics`);
+                                        
+                                        // Complete processing
+                                        completeTicketProcessing(ticket);
+                                    }, 2000);
+                                }, 1500);
+                            }, 3000);
+                        }, 2000);
+                    }, 3000);
+                }, 1500);
+            }, 1000);
+        }
+        
+        function triggerMitigationActions(ticket, isDemo) {
+            const actions = [];
+            
+            if (ticket.breachProbability > 0.7) {
+                actions.push({
+                    title: '🚨 Critical Alert Sent',
+                    description: `Immediate notification sent to ${ticket.department} manager and escalation team`,
+                    status: 'critical',
+                    delay: 500
+                });
+                
+                actions.push({
+                    title: '👥 Expert Team Assigned',
+                    description: `Senior ${ticket.department} specialists automatically assigned to ${ticket.id}`,
+                    status: 'pending',
+                    delay: 1500
+                });
+                
+                actions.push({
+                    title: '⚡ Priority Queue Boost',
+                    description: `Ticket ${ticket.id} moved to front of processing queue`,
+                    status: 'executed',
+                    delay: 2000
+                });
+                
+                if (ticket.customerTier === 'Enterprise' || ticket.customerTier === 'Platinum') {
+                    actions.push({
+                        title: '📞 Customer Proactive Outreach',
+                        description: `Account manager notified to contact ${ticket.customerTier} customer proactively`,
+                        status: 'pending',
+                        delay: 2500
+                    });
+                }
+                
+                actions.push({
+                    title: '📊 Resource Scaling',
+                    description: `Additional ${ticket.department} resources allocated automatically`,
+                    status: 'executed',
+                    delay: 3000
+                });
+                
+                if (ticket.revenueImpact > 100000) {
+                    actions.push({
+                        title: '💰 Revenue Protection Protocol',
+                        description: `Executive team alerted - Revenue impact: $${(ticket.revenueImpact / 1000).toFixed(0)}K`,
+                        status: 'critical',
+                        delay: 3500
+                    });
+                }
+            } else if (ticket.breachProbability > 0.4) {
+                actions.push({
+                    title: '⚠️ Preventive Alert',
+                    description: `${ticket.department} team notified of potential SLA risk`,
+                    status: 'pending',
+                    delay: 1000
+                });
+                
+                actions.push({
+                    title: '📈 Monitoring Enhanced',
+                    description: `Increased monitoring frequency for ${ticket.id}`,
+                    status: 'executed',
+                    delay: 2000
+                });
+            }
+            
+            // Execute actions with delays
+            actions.forEach(action => {
+                setTimeout(() => {
+                    addMitigationAction(action);
+                    logMessage('MITIGATION', action.status === 'critical' ? 'error' : 'success', 
+                              `${action.title}: ${action.description}`);
+                }, action.delay);
+            });
+            
+            // Update prevention metrics
+            if (ticket.breachProbability > 0.7) {
+                setTimeout(() => {
+                    breachesPrevented++;
+                    revenueProtected += ticket.revenueImpact;
+                    updateMetrics();
+                    showNotification(`🛡️ SLA breach prevented! Revenue protected: $${(ticket.revenueImpact / 1000).toFixed(0)}K`, 'success');
+                }, 4000);
+            }
+        }
+        
+        function completeTicketProcessing(ticket) {
+            logMessage('SYSTEM', 'success', `Ticket ${ticket.id} processing completed - SLA breach risk mitigated`);
+            
+            // Reset step statuses after a delay
+            setTimeout(() => {
+                resetStepStatuses();
+            }, 5000);
+        }
+        
+        function setStepStatus(step, status) {
+            const stepElement = document.getElementById(`step-${step}`);
+            const statusElement = document.getElementById(`status-${step}`);
+            
+            if (stepElement) {
+                stepElement.className = `pipeline-step ${status}`;
+            }
+            
+            if (statusElement) {
+                statusElement.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+                statusElement.className = `step-status status-${status}`;
+            }
+        }
+        
+        function setStepDetails(step, details) {
+            const detailsElement = document.getElementById(`details-${step}`);
+            if (detailsElement) {
+                detailsElement.textContent = details;
+            }
+        }
+        
+        function showPredictionResult(probability, confidence, revenueImpact) {
+            const resultElement = document.getElementById('prediction-result');
+            const probElement = document.getElementById('breach-prob');
+            const confidenceElement = document.getElementById('confidence');
+            const revenueElement = document.getElementById('revenue-impact');
+            
+            const probPercent = (probability * 100).toFixed(1);
+            
+            probElement.textContent = `${probPercent}%`;
+            probElement.className = `breach-probability ${probability > 0.7 ? 'prob-high' : probability > 0.4 ? 'prob-medium' : 'prob-low'}`;
+            
+            confidenceElement.textContent = `${confidence.toFixed(1)}%`;
+            revenueElement.textContent = (revenueImpact / 1000).toFixed(0);
+            
+            resultElement.style.display = 'block';
+        }
+        
+        function addMitigationAction(action) {
+            const mitigationList = document.getElementById('mitigation-list');
+            
+            const actionElement = document.createElement('div');
+            actionElement.className = `action-item ${action.status}`;
+            actionElement.innerHTML = `
+                <div class="action-header">
+                    <div class="action-title">${action.title}</div>
+                    <div class="action-status status-${action.status}">${action.status}</div>
+                </div>
+                <div class="action-description">${action.description}</div>
+            `;
+            
+            mitigationList.insertBefore(actionElement, mitigationList.firstChild);
+            
+            // Keep only last 8 actions
+            while (mitigationList.children.length > 8) {
+                mitigationList.removeChild(mitigationList.lastChild);
+            }
+        }
+        
+        function resetStepStatuses() {
+            const steps = ['lambda', 'sagemaker', 'stepfunctions', 'quicksight'];
+            steps.forEach(step => {
+                setStepStatus(step, 'idle');
+                setStepDetails(step, getIdleMessage(step));
+            });
+            
+            // Hide prediction result
+            document.getElementById('prediction-result').style.display = 'none';
+        }
+        
+        function getIdleMessage(step) {
+            const messages = {
+                lambda: 'Waiting for ticket to process...',
+                sagemaker: 'Ready for SLA breach prediction...',
+                stepfunctions: 'Escalation workflow ready...',
+                quicksight: 'Dashboard ready for updates...'
+            };
+            return messages[step];
+        }
+        
+        function updateMetrics() {
+            document.getElementById('total-tickets').textContent = totalTickets;
+            document.getElementById('breaches-prevented').textContent = breachesPrevented;
+            document.getElementById('revenue-protected').textContent = `$${(revenueProtected / 1000).toFixed(0)}K`;
+            
+            // Update compliance rate
+            const complianceRate = totalTickets > 0 ? ((totalTickets - (totalTickets - breachesPrevented)) / totalTickets * 100) : 95.8;
+            document.getElementById('sla-compliance').textContent = `${Math.min(99.9, complianceRate + 95).toFixed(1)}%`;
+        }
+        
+        function logMessage(service, level, message) {
+            const logContainer = document.getElementById('live-log');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.innerHTML = `
+                <span class="log-timestamp">[${timestamp}]</span>
+                <span class="log-service">[${service}]</span>
+                <span class="log-level-${level}">[${level.toUpperCase()}]</span>
+                ${message}
+            `;
+            
+            logContainer.insertBefore(logEntry, logContainer.firstChild);
+            
+            // Keep only last 20 entries
+            while (logContainer.children.length > 20) {
+                logContainer.removeChild(logContainer.lastChild);
+            }
+            
+            // Auto-scroll to top
+            logContainer.scrollTop = 0;
+        }
+        
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            const text = document.getElementById('notification-text');
+            
+            text.textContent = message;
+            notification.className = `notification ${type} show`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 4000);
+        }
+        
+        function clearLogs() {
+            const logContainer = document.getElementById('live-log');
+            logContainer.innerHTML = `
+                <div class="log-entry">
+                    <span class="log-timestamp">[${new Date().toLocaleTimeString()}]</span>
+                    <span class="log-service">[SYSTEM]</span>
+                    <span class="log-level-info">[INFO]</span>
+                    Logs cleared - AI-Powered SLA Guard ready
+                </div>
+            `;
+            showNotification('🗑️ Logs cleared', 'info');
+        }
+        
+        // Initialize with welcome message
+        setTimeout(() => {
+            showNotification('🤖 AI-Powered SLA Guard Agent ready! Create tickets to see breach prevention in action!', 'success');
+        }, 1000);
+    </script>
+</body>
+</html>

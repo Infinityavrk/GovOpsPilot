@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MeiTY/UIDAI Helpdesk - Ticket Creation System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+        
+        .header .time-info {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+        
+        .ticket-form {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-title {
+            font-size: 1.5em;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .form-group textarea {
+            height: 120px;
+            resize: vertical;
+        }
+        
+        .priority-selector {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        
+        .priority-option {
+            padding: 12px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .priority-option.p1 {
+            border-color: #e74c3c;
+            background: rgba(231, 76, 60, 0.1);
+        }
+        
+        .priority-option.p2 {
+            border-color: #f39c12;
+            background: rgba(243, 156, 18, 0.1);
+        }
+        
+        .priority-option.p3 {
+            border-color: #3498db;
+            background: rgba(52, 152, 219, 0.1);
+        }
+        
+        .priority-option.p4 {
+            border-color: #27ae60;
+            background: rgba(39, 174, 96, 0.1);
+        }
+        
+        .priority-option.selected {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .create-btn {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1em;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        .create-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+        }
+        
+        .ticket-preview {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .preview-title {
+            font-size: 1.5em;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .ticket-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 5px solid #3498db;
+        }
+        
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .ticket-id {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .ticket-priority {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .priority-p1 {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .priority-p2 {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .priority-p3 {
+            background: #3498db;
+            color: white;
+        }
+        
+        .priority-p4 {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .ticket-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .detail-label {
+            font-weight: bold;
+            color: #7f8c8d;
+        }
+        
+        .detail-value {
+            color: #2c3e50;
+        }
+        
+        .sla-countdown {
+            background: #e74c3c;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        
+        .language-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .language-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .hindi-text {
+            display: none;
+        }
+        
+        .hindi-mode .hindi-text {
+            display: block;
+        }
+        
+        .hindi-mode .english-text {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .priority-selector {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head><b
+ody>
+    <div class="container">
+        <div class="header">
+            <button class="language-toggle" onclick="toggleLanguage()">
+                <span class="english-text">हिंदी</span>
+                <span class="hindi-text">English</span>
+            </button>
+            
+            <h1>
+                <span class="english-text">🏛️ MeiTY/UIDAI Helpdesk System</span>
+                <span class="hindi-text">🏛️ MeiTY/UIDAI हेल्पडेस्क सिस्टम</span>
+            </h1>
+            <div class="time-info">
+                <span class="english-text">Current Time: <span id="current-time"></span> | SLA Guard Active</span>
+                <span class="hindi-text">वर्तमान समय: <span id="current-time-hindi"></span> | SLA गार्ड सक्रिय</span>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <!-- Email Monitor Section -->
+            <div class="email-monitor" style="grid-column: 1 / -1; margin-bottom: 20px; background: white; border-radius: 15px; padding: 20px; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);">
+                <div class="form-title">
+                    <span class="english-text">📧 Email-to-Ticket Integration</span>
+                    <span class="hindi-text">📧 ईमेल-से-टिकट एकीकरण</span>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; border-left: 5px solid #27ae60;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                            <div style="width: 12px; height: 12px; border-radius: 50%; background: #27ae60; animation: pulse 2s infinite;"></div>
+                            <strong>Email Monitor Status</strong>
+                        </div>
+                        <div style="color: #27ae60; font-weight: bold;">Active & Monitoring</div>
+                        <div style="font-size: 0.9em; color: #7f8c8d;">Checking for support emails every 15 seconds</div>
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; border-left: 5px solid #3498db;">
+                        <div><strong>Emails Processed:</strong> <span id="emails-processed-count">0</span></div>
+                        <div><strong>Tickets Created:</strong> <span id="tickets-from-email-count">0</span></div>
+                        <div><strong>Last Check:</strong> <span id="last-email-check">Just now</span></div>
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; border-left: 5px solid #9b59b6;">
+                        <div><strong>AI Analysis:</strong> Enabled</div>
+                        <div><strong>Auto-populate:</strong> Active</div>
+                        <div><strong>Priority Detection:</strong> Smart</div>
+                    </div>
+                </div>
+                
+                <div style="background: #2c3e50; color: white; padding: 15px; border-radius: 10px; font-family: 'Courier New', monospace; font-size: 0.9em; max-height: 120px; overflow-y: auto;" id="email-log">
+                    <div>[<span style="color: #3498db;">10:00:00</span>] <span style="color: #27ae60;">[EMAIL-MONITOR]</span> Email monitoring system initialized and active</div>
+                    <div>[<span style="color: #3498db;">10:00:15</span>] <span style="color: #27ae60;">[EMAIL-MONITOR]</span> Checking for new support emails...</div>
+                </div>
+            </div>
+            
+            <div class="ticket-form">
+                <div class="form-title">
+                    <span class="english-text">🎫 Create Support Ticket</span>
+                    <span class="hindi-text">🎫 सहायता टिकट बनाएं</span>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <span class="english-text">Department / विभाग</span>
+                        <span class="hindi-text">विभाग / Department</span>
+                    </label>
+                    <select id="department">
+                        <option value="UIDAI">UIDAI - Unique Identification Authority</option>
+                        <option value="MeiTY">MeiTY - MP State Electronics Development Corporation</option>
+                        <option value="DigitalMP">Digital MP - Digital Services</option>
+                        <option value="eDistrict">e-District - Citizen Services</option>
+                        <option value="MPOnline">MP Online - Government Portal</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <span class="english-text">Priority Level / प्राथमिकता स्तर</span>
+                        <span class="hindi-text">प्राथमिकता स्तर / Priority Level</span>
+                    </label>
+                    <div class="priority-selector">
+                        <div class="priority-option p1" onclick="selectPriority('P1')">
+                            <div><strong>P1</strong></div>
+                            <div class="english-text">Critical</div>
+                            <div class="hindi-text">गंभीर</div>
+                            <div><small>2 hours</small></div>
+                        </div>
+                        <div class="priority-option p2" onclick="selectPriority('P2')">
+                            <div><strong>P2</strong></div>
+                            <div class="english-text">High</div>
+                            <div class="hindi-text">उच्च</div>
+                            <div><small>8 hours</small></div>
+                        </div>
+                        <div class="priority-option p3" onclick="selectPriority('P3')">
+                            <div><strong>P3</strong></div>
+                            <div class="english-text">Medium</div>
+                            <div class="hindi-text">मध्यम</div>
+                            <div><small>24 hours</small></div>
+                        </div>
+                        <div class="priority-option p4" onclick="selectPriority('P4')">
+                            <div><strong>P4</strong></div>
+                            <div class="english-text">Low</div>
+                            <div class="hindi-text">कम</div>
+                            <div><small>72 hours</small></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <span class="english-text">Service Type / सेवा प्रकार</span>
+                        <span class="hindi-text">सेवा प्रकार / Service Type</span>
+                    </label>
+                    <select id="service-type">
+                        <option value="aadhaar-auth">Aadhaar Authentication / आधार प्रमाणीकरण</option>
+                        <option value="aadhaar-update">Aadhaar Update / आधार अपडेट</option>
+                        <option value="digital-services">Digital Services / डिजिटल सेवाएं</option>
+                        <option value="citizen-portal">Citizen Portal / नागरिक पोर्टल</option>
+                        <option value="mobile-app">Mobile App / मोबाइल ऐप</option>
+                        <option value="payment-gateway">Payment Gateway / पेमेंट गेटवे</option>
+                        <option value="certificate-services">Certificate Services / प्रमाणपत्र सेवाएं</option>
+                        <option value="other">Other / अन्य</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <span class="english-text">Location / स्थान</span>
+                        <span class="hindi-text">स्थान / Location</span>
+                    </label>
+                    <input type="text" id="location" placeholder="e.g., Indore, Madhya Pradesh / जैसे इंदौर, मध्य प्रदेश">
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <span class="english-text">Issue Description (Hindi/English) / समस्या विवरण</span>
+                        <span class="hindi-text">समस्या विवरण (हिंदी/अंग्रेजी) / Issue Description</span>
+                    </label>
+                    <textarea id="description" placeholder="Describe the issue in Hindi or English / हिंदी या अंग्रेजी में समस्या का वर्णन करें
+
+Example: Aadhaar authentication services are failing in Indore.
+उदाहरण: इंदौर में आधार प्रमाणीकरण सेवाएं विफल हो रही हैं।"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <span class="english-text">Reporter Name / रिपोर्टर का नाम</span>
+                        <span class="hindi-text">रिपोर्टर का नाम / Reporter Name</span>
+                    </label>
+                    <input type="text" id="reporter-name" placeholder="Name / नाम">
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <span class="english-text">Contact Number / संपर्क नंबर</span>
+                        <span class="hindi-text">संपर्क नंबर / Contact Number</span>
+                    </label>
+                    <input type="tel" id="contact" placeholder="+91 XXXXXXXXXX">
+                </div>
+                
+                <button class="create-btn" onclick="window.currentEmailTicket ? createTicketFromEmail() : createTicket()">
+                    <span class="english-text" id="create-btn-text">🚀 Create Ticket & Start SLA Guard</span>
+                    <span class="hindi-text" id="create-btn-text-hindi">🚀 टिकट बनाएं और SLA गार्ड शुरू करें</span>
+                </button>
+                
+                <div id="email-source-indicator" style="display: none; background: rgba(52, 152, 219, 0.1); color: #3498db; padding: 10px; border-radius: 8px; margin-top: 10px; text-align: center; font-weight: bold;">
+                    📧 Form auto-populated from email - Ready to create ticket
+                </div>
+            </div>
+            
+            <div class="ticket-preview">
+                <div class="preview-title">
+                    <span class="english-text">🎫 Ticket Preview</span>
+                    <span class="hindi-text">🎫 टिकट पूर्वावलोकन</span>
+                </div>
+                
+                <div class="ticket-card" id="ticket-preview">
+                    <div class="ticket-header">
+                        <div class="ticket-id" id="preview-ticket-id">UIDAI-P1-2025-1101</div>
+                        <div class="ticket-priority priority-p1" id="preview-priority">P1 - Critical</div>
+                    </div>
+                    
+                    <div class="ticket-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Department:</span>
+                            <span class="detail-value" id="preview-department">UIDAI</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Service:</span>
+                            <span class="detail-value" id="preview-service">Aadhaar Auth</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Location:</span>
+                            <span class="detail-value" id="preview-location">Indore, MP</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Status:</span>
+                            <span class="detail-value" id="preview-status">Open</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Created:</span>
+                            <span class="detail-value" id="preview-created">10:00 AM</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">SLA Due:</span>
+                            <span class="detail-value" id="preview-sla-due">12:00 PM</span>
+                        </div>
+                    </div>
+                    
+                    <div class="sla-countdown" id="sla-countdown">
+                        <span class="english-text">⏰ SLA Deadline: 2 hours remaining</span>
+                        <span class="hindi-text">⏰ SLA समय सीमा: 2 घंटे शेष</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let selectedPriority = 'P1';
+        let isHindiMode = false;
+        let ticketCounter = 1101;
+        let emailTickets = [];
+        let emailMonitoringActive = false;
+        
+        // Real-time clock
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-IN', {
+                timeZone: 'Asia/Kolkata',
+                hour12: true
+            });
+            
+            document.getElementById('current-time').textContent = timeString;
+            document.getElementById('current-time-hindi').textContent = timeString;
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+        
+        function toggleLanguage() {
+            isHindiMode = !isHindiMode;
+            document.body.classList.toggle('hindi-mode', isHindiMode);
+        }
+        
+        function selectPriority(priority) {
+            selectedPriority = priority;
+            
+            // Update UI
+            document.querySelectorAll('.priority-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            document.querySelector(`.priority-option.${priority.toLowerCase()}`).classList.add('selected');
+            
+            // Update preview
+            updateTicketPreview();
+        }
+        
+        function updateTicketPreview() {
+            const department = document.getElementById('department').value;
+            const serviceType = document.getElementById('service-type').value;
+            const location = document.getElementById('location').value || 'Not specified';
+            const description = document.getElementById('description').value;
+            
+            // Generate ticket ID
+            const now = new Date();
+            const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+            const ticketId = `${department}-${selectedPriority}-${dateStr.slice(2)}-${ticketCounter}`;
+            
+            // Calculate SLA deadline
+            const slaHours = {
+                'P1': 2,
+                'P2': 8, 
+                'P3': 24,
+                'P4': 72
+            }[selectedPriority];
+            
+            const slaDeadline = new Date(now.getTime() + slaHours * 60 * 60 * 1000);
+            const slaTimeString = slaDeadline.toLocaleTimeString('en-IN', {
+                timeZone: 'Asia/Kolkata',
+                hour12: true
+            });
+            
+            // Update preview
+            document.getElementById('preview-ticket-id').textContent = ticketId;
+            document.getElementById('preview-department').textContent = department;
+            document.getElementById('preview-service').textContent = getServiceDisplayName(serviceType);
+            document.getElementById('preview-location').textContent = location;
+            document.getElementById('preview-created').textContent = now.toLocaleTimeString('en-IN', {
+                timeZone: 'Asia/Kolkata',
+                hour12: true
+            });
+            document.getElementById('preview-sla-due').textContent = slaTimeString;
+            
+            // Update priority display
+            const priorityElement = document.getElementById('preview-priority');
+            priorityElement.textContent = `${selectedPriority} - ${getPriorityName(selectedPriority)}`;
+            priorityElement.className = `ticket-priority priority-${selectedPriority.toLowerCase()}`;
+            
+            // Update SLA countdown
+            const countdownElement = document.getElementById('sla-countdown');
+            const hoursRemaining = slaHours;
+            
+            if (isHindiMode) {
+                countdownElement.innerHTML = `⏰ SLA समय सीमा: ${hoursRemaining} घंटे शेष`;
+            } else {
+                countdownElement.innerHTML = `⏰ SLA Deadline: ${hoursRemaining} hours remaining`;
+            }
+            
+            // Color code based on priority
+            const ticket = document.querySelector('.ticket-card');
+            ticket.style.borderLeftColor = {
+                'P1': '#e74c3c',
+                'P2': '#f39c12',
+                'P3': '#3498db',
+                'P4': '#27ae60'
+            }[selectedPriority];
+        }
+        
+        function getServiceDisplayName(serviceType) {
+            const names = {
+                'aadhaar-auth': 'Aadhaar Auth',
+                'aadhaar-update': 'Aadhaar Update',
+                'digital-services': 'Digital Services',
+                'citizen-portal': 'Citizen Portal',
+                'mobile-app': 'Mobile App',
+                'payment-gateway': 'Payment Gateway',
+                'certificate-services': 'Certificates',
+                'other': 'Other'
+            };
+            return names[serviceType] || serviceType;
+        }
+        
+        function getPriorityName(priority) {
+            const names = {
+                'P1': isHindiMode ? 'गंभीर' : 'Critical',
+                'P2': isHindiMode ? 'उच्च' : 'High',
+                'P3': isHindiMode ? 'मध्यम' : 'Medium',
+                'P4': isHindiMode ? 'कम' : 'Low'
+            };
+            return names[priority] || priority;
+        }
+        
+        function createTicket() {
+            const department = document.getElementById('department').value;
+            const serviceType = document.getElementById('service-type').value;
+            const location = document.getElementById('location').value;
+            const description = document.getElementById('description').value;
+            const reporterName = document.getElementById('reporter-name').value;
+            const contact = document.getElementById('contact').value;
+            
+            if (!description.trim()) {
+                alert(isHindiMode ? 'कृपया समस्या का विवरण दें' : 'Please provide issue description');
+                return;
+            }
+            
+            // Show AI processing notification
+            showNotification('🤖 AI analyzing your description...', 'info');
+            
+            // Analyze description with AI
+            setTimeout(() => {
+                const aiAnalysis = analyzeDescriptionWithAI(description);
+                
+                // Create ticket with AI analysis
+                const ticket = createTicketFromAIAnalysis(description, aiAnalysis, {
+                    department,
+                    priority: selectedPriority,
+                    serviceType,
+                    location,
+                    reporterName,
+                    contact
+                });
+                
+                // Show AI analysis results
+                showAIAnalysisResults(aiAnalysis, ticket);
+                
+                // Trigger complete production flow
+                triggerCompleteProductionFlow(ticket);
+                
+                // Show creation animation
+                showTicketCreation(ticket);
+                
+                // Clear form
+                clearForm();
+                
+            }, 2000); // Simulate AI processing time
+        }
+        
+        function analyzeDescriptionWithAI(description) {
+            const text = description.toLowerCase();
+            
+            // AI Department Analysis
+            let aiDepartment = 'MPOnline';
+            let departmentConfidence = 0.5;
+            
+            if (text.includes('aadhaar') || text.includes('authentication') || text.includes('biometric') || text.includes('uid')) {
+                aiDepartment = 'UIDAI';
+                departmentConfidence = 0.95;
+            } else if (text.includes('payment') || text.includes('transaction') || text.includes('gateway') || text.includes('money')) {
+                aiDepartment = 'MeiTY';
+                departmentConfidence = 0.90;
+            } else if (text.includes('portal') || text.includes('website') || text.includes('digital') || text.includes('online')) {
+                aiDepartment = 'DigitalMP';
+                departmentConfidence = 0.88;
+            } else if (text.includes('certificate') || text.includes('document') || text.includes('service')) {
+                aiDepartment = 'eDistrict';
+                departmentConfidence = 0.85;
+            }
+            
+            // AI Priority Analysis
+            let aiPriority = 'P3';
+            let priorityConfidence = 0.7;
+            
+            if (text.includes('critical') || text.includes('urgent') || text.includes('emergency') || 
+                text.includes('down') || text.includes('failing') || text.includes('outage') || text.includes('broken')) {
+                aiPriority = 'P1';
+                priorityConfidence = 0.95;
+            } else if (text.includes('important') || text.includes('high') || text.includes('serious') || 
+                       text.includes('asap') || text.includes('priority')) {
+                aiPriority = 'P2';
+                priorityConfidence = 0.88;
+            } else if (text.includes('minor') || text.includes('small') || text.includes('question')) {
+                aiPriority = 'P4';
+                priorityConfidence = 0.80;
+            }
+            
+            // AI Service Type Analysis
+            let aiServiceType = 'other';
+            if (text.includes('aadhaar') || text.includes('authentication')) {
+                aiServiceType = 'aadhaar-auth';
+            } else if (text.includes('payment') || text.includes('gateway')) {
+                aiServiceType = 'payment-gateway';
+            } else if (text.includes('portal') || text.includes('website')) {
+                aiServiceType = 'citizen-portal';
+            } else if (text.includes('mobile') || text.includes('app')) {
+                aiServiceType = 'mobile-app';
+            } else if (text.includes('certificate') || text.includes('document')) {
+                aiServiceType = 'certificate-services';
+            }
+            
+            // AI Location Analysis
+            const locations = ['mumbai', 'delhi', 'bangalore', 'hyderabad', 'chennai', 'kolkata',
+                             'pune', 'ahmedabad', 'jaipur', 'lucknow', 'kanpur', 'nagpur',
+                             'indore', 'bhopal', 'visakhapatnam', 'patna', 'vadodara', 'gwalior',
+                             'jabalpur', 'ujjain', 'sagar', 'dewas', 'satna', 'ratlam'];
+            
+            let aiLocation = 'Not specified';
+            for (const loc of locations) {
+                if (text.includes(loc)) {
+                    aiLocation = loc.charAt(0).toUpperCase() + loc.slice(1) + ', India';
+                    break;
+                }
+            }
+            
+            // AI Sentiment Analysis
+            const negativeWords = ['angry', 'frustrated', 'disappointed', 'terrible', 'awful', 'horrible', 'hate'];
+            const positiveWords = ['please', 'help', 'thank', 'appreciate', 'grateful', 'kindly'];
+            
+            let sentiment = 'neutral';
+            if (negativeWords.some(word => text.includes(word))) {
+                sentiment = 'negative';
+            } else if (positiveWords.some(word => text.includes(word))) {
+                sentiment = 'positive';
+            }
+            
+            // AI Urgency Detection
+            const urgencyIndicators = ['urgent', 'asap', 'immediately', 'now', 'quickly', 'fast'];
+            const urgencyLevel = urgencyIndicators.some(word => text.includes(word)) ? 'high' : 'normal';
+            
+            return {
+                department: aiDepartment,
+                departmentConfidence,
+                priority: aiPriority,
+                priorityConfidence,
+                serviceType: aiServiceType,
+                location: aiLocation,
+                sentiment,
+                urgencyLevel,
+                overallConfidence: (departmentConfidence + priorityConfidence) / 2,
+                analysisTimestamp: new Date().toISOString()
+            };
+        }
+        
+        function createTicketFromAIAnalysis(description, aiAnalysis, formData) {
+            const now = new Date();
+            const dateStr = now.toISOString().slice(2, 10).replace(/-/g, '');
+            const timeStr = now.toTimeString().slice(0, 5).replace(':', '');
+            
+            // Use AI analysis or form data (AI takes precedence if confidence is high)
+            const finalDepartment = aiAnalysis.departmentConfidence > 0.8 ? aiAnalysis.department : formData.department;
+            const finalPriority = aiAnalysis.priorityConfidence > 0.8 ? aiAnalysis.priority : formData.priority;
+            const finalServiceType = aiAnalysis.serviceType !== 'other' ? aiAnalysis.serviceType : formData.serviceType;
+            const finalLocation = aiAnalysis.location !== 'Not specified' ? aiAnalysis.location : formData.location;
+            
+            const ticketId = `${finalDepartment}-${finalPriority}-${dateStr}-${timeStr}`;
+            
+            // Calculate SLA deadline
+            const slaHours = {
+                'P1': 2, 'P2': 8, 'P3': 24, 'P4': 72
+            }[finalPriority] || 24;
+            
+            const slaDeadline = new Date(now.getTime() + slaHours * 60 * 60 * 1000);
+            
+            // Calculate breach probability with AI enhancement
+            let baseProbability = {
+                'P1': 0.85, 'P2': 0.65, 'P3': 0.45, 'P4': 0.25
+            }[finalPriority] || 0.45;
+            
+            // Adjust for sentiment
+            if (aiAnalysis.sentiment === 'negative') baseProbability += 0.1;
+            if (aiAnalysis.urgencyLevel === 'high') baseProbability += 0.05;
+            
+            // Adjust for service type
+            const serviceMultiplier = {
+                'aadhaar-auth': 1.3, 'payment-gateway': 1.2, 'citizen-portal': 1.1,
+                'mobile-app': 1.0, 'certificate-services': 1.1, 'other': 1.0
+            }[finalServiceType] || 1.0;
+            
+            const breachProbability = Math.min(0.95, baseProbability * serviceMultiplier);
+            
+            // Calculate revenue impact
+            const baseImpact = {
+                'P1': 200000, 'P2': 100000, 'P3': 50000, 'P4': 20000
+            }[finalPriority] || 50000;
+            
+            const revenueImpact = Math.floor(baseImpact * serviceMultiplier);
+            
+            return {
+                ticket_id: ticketId,
+                source: 'manual_with_ai',
+                department: finalDepartment,
+                priority: finalPriority,
+                service_type: finalServiceType,
+                location: finalLocation,
+                reporter_name: formData.reporterName || 'Manual User',
+                contact: formData.contact || 'manual@system.com',
+                description: description,
+                status: 'Open',
+                created_at: now.toISOString(),
+                sla_deadline: slaDeadline.toISOString(),
+                sla_due_time: slaDeadline.toLocaleTimeString('en-IN', { hour12: true }),
+                sla_hours: slaHours,
+                breach_probability: breachProbability,
+                revenue_impact: revenueImpact,
+                customer_tier: {
+                    'P1': 'Enterprise', 'P2': 'Platinum', 'P3': 'Gold', 'P4': 'Silver'
+                }[finalPriority] || 'Silver',
+                ai_analysis: aiAnalysis,
+                confidence_score: aiAnalysis.overallConfidence,
+                sentiment: aiAnalysis.sentiment,
+                urgency_level: aiAnalysis.urgencyLevel,
+                ai_enhanced: true,
+                language: isHindiMode ? 'hindi' : 'english'
+            };
+        }
+        
+        function showAIAnalysisResults(aiAnalysis, ticket) {
+            const analysisMessage = `
+                🤖 AI Analysis Complete!
+                
+                📊 Analysis Results:
+                • Department: ${aiAnalysis.department} (${(aiAnalysis.departmentConfidence * 100).toFixed(1)}% confidence)
+                • Priority: ${aiAnalysis.priority} (${(aiAnalysis.priorityConfidence * 100).toFixed(1)}% confidence)
+                • Service: ${aiAnalysis.serviceType}
+                • Location: ${aiAnalysis.location}
+                • Sentiment: ${aiAnalysis.sentiment}
+                • Urgency: ${aiAnalysis.urgencyLevel}
+                • Overall Confidence: ${(aiAnalysis.overallConfidence * 100).toFixed(1)}%
+                
+                🎫 Ticket: ${ticket.ticket_id}
+                📊 Breach Risk: ${(ticket.breach_probability * 100).toFixed(1)}%
+                💰 Revenue Impact: $${ticket.revenue_impact.toLocaleString()}
+            `;
+            
+            showNotification(analysisMessage, 'success');
+        }
+        
+        function triggerCompleteProductionFlow(ticket) {
+            // Add to email log for tracking
+            addToEmailLog(`🤖 AI-Enhanced ticket created: ${ticket.ticket_id}`, 'success');
+            addToEmailLog(`Department: ${ticket.department} | Priority: ${ticket.priority} | Confidence: ${(ticket.confidence_score * 100).toFixed(1)}%`, 'info');
+            addToEmailLog(`Breach Risk: ${(ticket.breach_probability * 100).toFixed(1)}% | Revenue Impact: $${ticket.revenue_impact.toLocaleString()}`, 'warning');
+            
+            // Simulate complete production flow
+            setTimeout(() => {
+                addToEmailLog('📦 DynamoDB: Ticket stored with streams enabled', 'success');
+            }, 1000);
+            
+            setTimeout(() => {
+                addToEmailLog('⏰ EventBridge: 5-minute monitoring started', 'success');
+            }, 2000);
+            
+            setTimeout(() => {
+                addToEmailLog('🧠 SageMaker: ML prediction completed', 'success');
+            }, 3000);
+            
+            setTimeout(() => {
+                addToEmailLog('🔄 Step Functions: Escalation workflow started', 'success');
+            }, 4000);
+            
+            if (ticket.priority === 'P1') {
+                setTimeout(() => {
+                    addToEmailLog('🚨 SNS/SES: Immediate P1 alert sent', 'warning');
+                }, 5000);
+            } else {
+                setTimeout(() => {
+                    addToEmailLog('📧 SNS/SES: Standard alert sent', 'success');
+                }, 5000);
+            }
+            
+            setTimeout(() => {
+                addToEmailLog('📊 QuickSight: Dashboard updated with new metrics', 'success');
+            }, 6000);
+            
+            setTimeout(() => {
+                addToEmailLog('🗄️ S3/Athena: Data archived for analytics', 'success');
+            }, 7000);
+            
+            setTimeout(() => {
+                addToEmailLog('🔄 ML Retraining: Pipeline updated with new data', 'success');
+            }, 8000);
+            
+            setTimeout(() => {
+                addToEmailLog(`✅ Complete production flow executed for ${ticket.ticket_id}`, 'success');
+                
+                // Update counters
+                const ticketCount = document.getElementById('tickets-from-email-count');
+                ticketCount.textContent = parseInt(ticketCount.textContent) + 1;
+                
+            }, 9000);
+            
+            // Store ticket data
+            localStorage.setItem('latest_ai_ticket', JSON.stringify(ticket));
+            console.log('AI-Enhanced ticket created:', ticket);
+        }
+        
+        function calculateBreachProbability(priority, serviceType, location) {
+            let baseProbability = {
+                'P1': 0.85,
+                'P2': 0.65,
+                'P3': 0.45,
+                'P4': 0.25
+            }[priority];
+            
+            // Adjust for service type
+            const serviceMultiplier = {
+                'aadhaar-auth': 1.2,
+                'payment-gateway': 1.3,
+                'citizen-portal': 1.1,
+                'mobile-app': 1.0,
+                'digital-services': 1.1,
+                'other': 1.0
+            }[serviceType] || 1.0;
+            
+            // Adjust for major cities
+            const majorCities = ['mumbai', 'delhi', 'bangalore', 'hyderabad', 'chennai', 'indore', 'bhopal'];
+            const locationMultiplier = majorCities.some(city => 
+                location.toLowerCase().includes(city)) ? 1.1 : 1.0;
+            
+            return Math.min(0.95, baseProbability * serviceMultiplier * locationMultiplier);
+        }
+        
+        function calculateRevenueImpact(priority, serviceType) {
+            const baseImpact = {
+                'P1': 200000,
+                'P2': 100000,
+                'P3': 50000,
+                'P4': 20000
+            }[priority];
+            
+            const serviceMultiplier = {
+                'aadhaar-auth': 2.0,
+                'payment-gateway': 1.8,
+                'citizen-portal': 1.2,
+                'digital-services': 1.3,
+                'mobile-app': 1.1,
+                'other': 1.0
+            }[serviceType] || 1.0;
+            
+            return Math.floor(baseImpact * serviceMultiplier);
+        }
+        
+        function mapPriorityToTier(priority) {
+            return {
+                'P1': 'Enterprise',
+                'P2': 'Platinum',
+                'P3': 'Gold',
+                'P4': 'Silver'
+            }[priority];
+        }
+        
+        // Email integration functions
+        function startEmailMonitoring() {
+            emailMonitoringActive = true;
+            showNotification('📧 Email monitoring started - checking for support emails...', 'info');
+            
+            // Simulate email monitoring
+            setInterval(checkForNewEmails, 15000); // Check every 15 seconds
+        }
+        
+        function checkForNewEmails() {
+            if (!emailMonitoringActive) return;
+            
+            // Simulate receiving emails (in real implementation, this would call the Python email reader)
+            if (Math.random() < 0.2) { // 20% chance of new email
+                const sampleEmails = [
+                    {
+                        ticket_id: `UIDAI-P1-${new Date().toISOString().slice(2,10).replace(/-/g,'')}-${Math.floor(Math.random()*9999).toString().padStart(4,'0')}`,
+                        email_subject: "Aadhaar authentication services failing in Indore",
+                        email_from: "resident@example.com",
+                        reporter_name: "Concerned Resident",
+                        contact: "resident@example.com",
+                        department: "UIDAI",
+                        priority: "P1",
+                        service_type: "aadhaar-auth",
+                        location: "Indore, Madhya Pradesh",
+                        description: "A resident reports that Aadhaar authentication services are failing in Indore. Authentication requests are timing out and citizens are unable to access government services. This is affecting multiple residents and requires urgent investigation.",
+                        breach_probability: 0.89,
+                        revenue_impact: 275000,
+                        source: "email"
+                    },
+                    {
+                        ticket_id: `MeiTY-P2-${new Date().toISOString().slice(2,10).replace(/-/g,'')}-${Math.floor(Math.random()*9999).toString().padStart(4,'0')}`,
+                        email_subject: "Payment gateway timeout issues in Bhopal",
+                        email_from: "merchant@business.com",
+                        reporter_name: "Business Owner",
+                        contact: "merchant@business.com",
+                        department: "MeiTY",
+                        priority: "P2",
+                        service_type: "payment-gateway",
+                        location: "Bhopal, Madhya Pradesh",
+                        description: "Payment gateway is experiencing timeout issues. Multiple transactions are failing and customers are unable to complete payments. This is affecting business operations.",
+                        breach_probability: 0.67,
+                        revenue_impact: 150000,
+                        source: "email"
+                    },
+                    {
+                        ticket_id: `DigitalMP-P3-${new Date().toISOString().slice(2,10).replace(/-/g,'')}-${Math.floor(Math.random()*9999).toString().padStart(4,'0')}`,
+                        email_subject: "Mobile app login problems",
+                        email_from: "user@citizen.gov.in",
+                        reporter_name: "Digital Citizen",
+                        contact: "user@citizen.gov.in",
+                        department: "DigitalMP",
+                        priority: "P3",
+                        service_type: "mobile-app",
+                        location: "Gwalior, Madhya Pradesh",
+                        description: "Citizens are unable to login to the mobile app. Getting authentication errors and the app crashes frequently. This is affecting access to digital services.",
+                        breach_probability: 0.45,
+                        revenue_impact: 75000,
+                        source: "email"
+                    }
+                ];
+                
+                const newEmail = sampleEmails[Math.floor(Math.random() * sampleEmails.length)];
+                processIncomingEmail(newEmail);
+            }
+        }
+        
+        function processIncomingEmail(emailTicket) {
+            emailTickets.push(emailTicket);
+            
+            // Show notification
+            showNotification(`📧 New support email received: ${emailTicket.email_subject.substring(0, 50)}...`, 'info');
+            
+            // Auto-populate form with email data
+            setTimeout(() => {
+                populateFormFromEmail(emailTicket);
+                showNotification(`🎫 Form auto-populated from email - Review and create ticket`, 'success');
+            }, 2000);
+        }
+        
+        function populateFormFromEmail(emailTicket) {
+            // Populate all form fields
+            document.getElementById('department').value = emailTicket.department;
+            document.getElementById('service-type').value = emailTicket.service_type;
+            document.getElementById('location').value = emailTicket.location;
+            document.getElementById('description').value = emailTicket.description;
+            document.getElementById('reporter-name').value = emailTicket.reporter_name;
+            document.getElementById('contact').value = emailTicket.contact;
+            
+            // Set priority
+            selectPriority(emailTicket.priority);
+            
+            // Add visual indication
+            const fields = ['department', 'service-type', 'location', 'description', 'reporter-name', 'contact'];
+            fields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                field.style.background = 'rgba(39, 174, 96, 0.1)';
+                field.style.borderColor = '#27ae60';
+                setTimeout(() => {
+                    field.style.background = '';
+                    field.style.borderColor = '#ecf0f1';
+                }, 5000);
+            });
+            
+            // Update preview
+            updateTicketPreview();
+            
+            // Show email source indicator
+            document.getElementById('email-source-indicator').style.display = 'block';
+            
+            // Update button text
+            document.getElementById('create-btn-text').textContent = '📧 Create Ticket from Email';
+            document.getElementById('create-btn-text-hindi').textContent = '📧 ईमेल से टिकट बनाएं';
+            
+            // Store email data for ticket creation
+            window.currentEmailTicket = emailTicket;
+            
+            // Add to email log
+            addToEmailLog(`Email processed: ${emailTicket.email_subject}`, 'success');
+            addToEmailLog(`Auto-populated: ${emailTicket.department} | ${emailTicket.priority} | ${emailTicket.location}`, 'info');
+        }
+        
+        function addToEmailLog(message, type = 'info') {
+            const log = document.getElementById('email-log');
+            const now = new Date();
+            const timestamp = now.toLocaleTimeString();
+            
+            const colors = {
+                'info': '#3498db',
+                'success': '#27ae60',
+                'warning': '#f39c12',
+                'error': '#e74c3c'
+            };
+            
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `[<span style="color: #3498db;">${timestamp}</span>] <span style="color: ${colors[type]};">[EMAIL-SYSTEM]</span> ${message}`;
+            
+            log.appendChild(logEntry);
+            
+            // Keep only last 10 entries
+            while (log.children.length > 10) {
+                log.removeChild(log.firstChild);
+            }
+            
+            // Scroll to bottom
+            log.scrollTop = log.scrollHeight;
+            
+            // Update counters
+            if (type === 'success') {
+                const processedCount = document.getElementById('emails-processed-count');
+                processedCount.textContent = parseInt(processedCount.textContent) + 1;
+            }
+            
+            // Update last check time
+            document.getElementById('last-email-check').textContent = timestamp;
+        }
+        
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                border-radius: 10px;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+                z-index: 1000;
+                max-width: 400px;
+                transform: translateX(400px);
+                transition: transform 0.3s ease;
+                color: white;
+                font-weight: bold;
+            `;
+            
+            // Set color based on type
+            const colors = {
+                'info': '#3498db',
+                'success': '#27ae60',
+                'warning': '#f39c12',
+                'error': '#e74c3c'
+            };
+            notification.style.background = colors[type] || colors.info;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Show notification
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Hide notification
+            setTimeout(() => {
+                notification.style.transform = 'translateX(400px)';
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 4000);
+        }
+        
+        // Enhanced ticket creation with AI analysis
+        function createTicketFromEmail() {
+            if (window.currentEmailTicket) {
+                const emailTicket = window.currentEmailTicket;
+                
+                // Create ticket with email metadata
+                const ticketData = {
+                    ...emailTicket,
+                    created_at: new Date().toISOString(),
+                    sla_deadline: calculateSLADeadline(emailTicket.priority),
+                    status: 'Open',
+                    sla_met: 'Pending',
+                    resolution_time_hours: 0
+                };
+                
+                // Show success message
+                showNotification(`🎫 Ticket created from email: ${ticketData.ticket_id}`, 'success');
+                
+                // Add to email log
+                addToEmailLog(`Ticket created: ${ticketData.ticket_id}`, 'success');
+                addToEmailLog(`Priority: ${ticketData.priority} | SLA: ${ticketData.sla_deadline} | Revenue Impact: $${ticketData.revenue_impact.toLocaleString()}`, 'info');
+                
+                // Update ticket counter
+                const ticketCount = document.getElementById('tickets-from-email-count');
+                ticketCount.textContent = parseInt(ticketCount.textContent) + 1;
+                
+                // Simulate DynamoDB insertion
+                simulateDynamoDBInsertion(ticketData);
+                
+                // Trigger SLA Guard workflow
+                triggerSLAGuardWorkflow(ticketData);
+                
+                // Clear form and email data
+                clearForm();
+                window.currentEmailTicket = null;
+                
+                // Hide email indicator
+                document.getElementById('email-source-indicator').style.display = 'none';
+                
+                // Reset button text
+                document.getElementById('create-btn-text').textContent = '🚀 Create Ticket & Start SLA Guard';
+                document.getElementById('create-btn-text-hindi').textContent = '🚀 टिकट बनाएं और SLA गार्ड शुरू करें';
+                
+                // Log ticket creation
+                console.log('Ticket created from email:', ticketData);
+                
+                return ticketData;
+            }
+            
+            return createTicketWithAI(); // Use AI analysis for manual creation
+        }
+        
+        function simulateDynamoDBInsertion(ticketData) {
+            // Simulate DynamoDB insertion with visual feedback
+            addToEmailLog('Inserting ticket into DynamoDB...', 'info');
+            
+            setTimeout(() => {
+                addToEmailLog(`DynamoDB: Ticket ${ticketData.ticket_id} inserted successfully`, 'success');
+                addToEmailLog(`Table: sla-tickets | Partition Key: ${ticketData.ticket_id}`, 'info');
+            }, 1000);
+        }
+        
+        function triggerSLAGuardWorkflow(ticketData) {
+            // Simulate SLA Guard workflow trigger
+            setTimeout(() => {
+                addToEmailLog('Triggering SLA Guard workflow...', 'info');
+                
+                setTimeout(() => {
+                    addToEmailLog(`Step Functions: Workflow started for ${ticketData.ticket_id}`, 'success');
+                    addToEmailLog(`Breach probability: ${(ticketData.breach_probability * 100).toFixed(1)}% | Monitoring active`, 'warning');
+                }, 1500);
+            }, 2000);
+        }
+        
+        function calculateSLADeadline(priority) {
+            const slaHours = {
+                'P1': 2,
+                'P2': 8,
+                'P3': 24,
+                'P4': 72
+            }[priority] || 24;
+            
+            const deadline = new Date();
+            deadline.setHours(deadline.getHours() + slaHours);
+            
+            return deadline.toLocaleTimeString('en-IN', {
+                timeZone: 'Asia/Kolkata',
+                hour12: true
+            });
+        }
+        
+        function clearForm() {
+            document.getElementById('reporter-name').value = '';
+            document.getElementById('contact').value = '';
+            document.getElementById('description').value = '';
+            document.getElementById('location').value = '';
+            
+            // Reset to defaults
+            document.getElementById('department').value = 'UIDAI';
+            document.getElementById('service-type').value = 'aadhaar-auth';
+            selectPriority('P1');
+        }
+        
+        // Initialize form
+        document.addEventListener('DOMContentLoaded', function() {
+            selectPriority('P1');
+            updateTicketPreview();
+            
+            // Add event listeners for real-time preview updates
+            ['department', 'service-type', 'location', 'description', 'reporter-name', 'contact'].forEach(id => {
+                document.getElementById(id).addEventListener('input', updateTicketPreview);
+                document.getElementById(id).addEventListener('change', updateTicketPreview);
+            });
+            
+            // Start email monitoring automatically
+            setTimeout(() => {
+                startEmailMonitoring();
+            }, 2000);
+        });
+        
+        function showTicketCreation(ticketData) {
+            // Update the preview with created ticket
+            document.getElementById('preview-ticket-id').textContent = ticketData.ticket_id;
+            document.getElementById('preview-department').textContent = ticketData.department;
+            document.getElementById('preview-service').textContent = getServiceDisplayName(ticketData.service_type);
+            document.getElementById('preview-location').textContent = ticketData.location;
+            document.getElementById('preview-created').textContent = new Date().toLocaleTimeString('en-IN', { hour12: true });
+            document.getElementById('preview-sla-due').textContent = ticketData.sla_due_time;
+            document.getElementById('preview-status').textContent = ticketData.status;
+            
+            // Update priority display
+            const priorityElement = document.getElementById('preview-priority');
+            priorityElement.textContent = `${ticketData.priority} - ${getPriorityName(ticketData.priority)}`;
+            priorityElement.className = `ticket-priority priority-${ticketData.priority.toLowerCase()}`;
+            
+            // Update SLA countdown
+            const countdownElement = document.getElementById('sla-countdown');
+            const slaText = isHindiMode ? 
+                `⏰ SLA समय सीमा: ${ticketData.sla_due_time} | जोखिम: ${(ticketData.breach_probability * 100).toFixed(1)}%` :
+                `⏰ SLA Deadline: ${ticketData.sla_due_time} | Risk: ${(ticketData.breach_probability * 100).toFixed(1)}%`;
+            
+            countdownElement.innerHTML = slaText;
+            
+            // Color code based on priority
+            const ticket = document.querySelector('.ticket-card');
+            ticket.style.borderLeftColor = {
+                'P1': '#e74c3c',
+                'P2': '#f39c12',
+                'P3': '#3498db',
+                'P4': '#27ae60'
+            }[ticketData.priority];
+            
+            // Add AI enhancement indicator if applicable
+            if (ticketData.ai_enhanced) {
+                const aiIndicator = document.createElement('div');
+                aiIndicator.style.cssText = `
+                    background: rgba(52, 152, 219, 0.1);
+                    border: 1px solid #3498db;
+                    border-radius: 5px;
+                    padding: 8px;
+                    margin-top: 10px;
+                    font-size: 0.8em;
+                    color: #3498db;
+                    font-weight: bold;
+                `;
+                aiIndicator.innerHTML = `🤖 AI Enhanced | Confidence: ${(ticketData.confidence_score * 100).toFixed(1)}% | Sentiment: ${ticketData.sentiment}`;
+                
+                ticket.appendChild(aiIndicator);
+                
+                // Remove after 10 seconds
+                setTimeout(() => {
+                    if (ticket.contains(aiIndicator)) {
+                        ticket.removeChild(aiIndicator);
+                    }
+                }, 10000);
+            }
+            
+            console.log('AI-Enhanced ticket created:', ticketData);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,3080 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SLA Guard - Bedrock Claude AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .status-bar {
+            background: #f8f9fa;
+            padding: 15px 30px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #28a745;
+        }
+
+        .status-indicator.warning {
+            background: #ffc107;
+        }
+
+        .status-indicator.error {
+            background: #dc3545;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .logs-section {
+            grid-column: 1 / -1;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .logs-header {
+            background: #343a40;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logs-content {
+            padding: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            background: #1e1e1e;
+            color: #f8f8f2;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 5px 8px;
+            border-radius: 4px;
+            border-left: 3px solid #6c757d;
+        }
+
+        .log-entry.INFO {
+            border-left-color: #17a2b8;
+            background: rgba(23, 162, 184, 0.1);
+        }
+
+        .log-entry.SUCCESS {
+            border-left-color: #28a745;
+            background: rgba(40, 167, 69, 0.1);
+        }
+
+        .log-entry.WARNING {
+            border-left-color: #ffc107;
+            background: rgba(255, 193, 7, 0.1);
+        }
+
+        .log-entry.ERROR {
+            border-left-color: #dc3545;
+            background: rgba(220, 53, 69, 0.1);
+        }
+
+        .log-timestamp {
+            color: #6c757d;
+            font-size: 10px;
+        }
+
+        .log-message {
+            margin-top: 2px;
+        }
+
+        .auto-refresh {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .bedrock-badge {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .fallback-badge {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Tab Navigation Styles */
+        .tab-navigation {
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            padding: 0 30px;
+        }
+
+        .tab-nav {
+            display: flex;
+            gap: 0;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .tab-nav li {
+            margin: 0;
+        }
+
+        .tab-nav button {
+            background: none;
+            border: none;
+            padding: 15px 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #6c757d;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-nav button:hover {
+            color: #3498db;
+            background: rgba(52, 152, 219, 0.1);
+        }
+
+        .tab-nav button.active {
+            color: #3498db;
+            border-bottom-color: #3498db;
+            background: rgba(52, 152, 219, 0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* License Optimization Styles */
+        .license-dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .license-metric-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+            text-align: center;
+        }
+
+        .license-metric-icon {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: #3498db;
+        }
+
+        .license-metric-value {
+            font-size: 2em;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .license-metric-label {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
+        .license-content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+
+        .license-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+
+        .license-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .license-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .license-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .license-vendor {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
+        .license-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .utilization-bar {
+            width: 100px;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 5px 0;
+        }
+
+        .utilization-fill {
+            height: 100%;
+            transition: width 0.3s;
+        }
+
+        .utilization-high {
+            background: #28a745;
+        }
+
+        .utilization-medium {
+            background: #ffc107;
+        }
+
+        .utilization-low {
+            background: #dc3545;
+        }
+
+        .recommendation-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .recommendation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .recommendation-type {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .savings-badge {
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .gem-badge {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .priority-high {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .priority-medium {
+            color: #fd7e14;
+            font-weight: 600;
+        }
+
+        .priority-low {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .license-upload-area {
+            border: 2px dashed #e9ecef;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        .license-upload-area:hover {
+            border-color: #3498db;
+            background: rgba(52, 152, 219, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            color: #3498db;
+            margin-bottom: 15px;
+        }
+
+        /* Self-Service & Knowledge Styles */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 600px;
+            background: white;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .language-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .lang-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 5px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .lang-btn.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-avatar {
+            background: #3498db;
+            color: white;
+        }
+
+        .message.bot .message-avatar {
+            background: #28a745;
+            color: white;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .message.user .message-content {
+            background: #3498db;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.bot .message-content {
+            background: white;
+            color: #2c3e50;
+            border: 1px solid #e9ecef;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .chat-input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input:focus {
+            border-color: #3498db;
+        }
+
+        .send-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+
+        .send-btn:hover {
+            background: #2980b9;
+            transform: scale(1.05);
+        }
+
+        .send-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .knowledge-base {
+            background: white;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+            padding: 20px;
+        }
+
+        .kb-search {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .kb-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .kb-category {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .kb-category:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .kb-category-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .kb-category-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .kb-category-desc {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .quick-action-btn {
+            background: #e9ecef;
+            color: #495057;
+            border: 1px solid #ced4da;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .quick-action-btn:hover {
+            background: #3498db;
+            color: white;
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 5px;
+            color: #6c757d;
+            font-style: italic;
+            margin-bottom: 15px;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 3px;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: #6c757d;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+
+            0%,
+            60%,
+            100% {
+                transform: translateY(0);
+            }
+
+            30% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .input-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+
+        .input-section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        textarea.form-control {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+        }
+
+        .examples-section {
+            margin-top: 20px;
+        }
+
+        .example-btn {
+            background: #e9ecef;
+            color: #495057;
+            border: 1px solid #ced4da;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            margin: 5px;
+            transition: all 0.2s;
+        }
+
+        .example-btn:hover {
+            background: #3498db;
+            color: white;
+        }
+
+        .results-section {
+            background: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .results-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .results-content {
+            padding: 25px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .analysis-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .analysis-card h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .metric-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .metric-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .priority-P1 {
+            color: #dc3545;
+        }
+
+        .priority-P2 {
+            color: #fd7e14;
+        }
+
+        .priority-P3 {
+            color: #ffc107;
+        }
+
+        .priority-P4 {
+            color: #28a745;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745 0%, #ffc107 50%, #dc3545 100%);
+            transition: width 0.3s;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #f5c6cb;
+            margin-bottom: 20px;
+        }
+
+        .bedrock-badge {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .fallback-badge {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .metric-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                🤖 GovOps Pilot
+            </h1>
+            <p>Advanced AI-powered analysis for Indian e-Governance</p>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-indicator" id="backendStatus"></div>
+                <span><strong>Backend AI:</strong> <span id="backendAI">Checking...</span></span>
+            </div>
+            <div class="status-item">
+                <div class="status-indicator" id="modelStatus"></div>
+                <span><strong>Model:</strong> <span id="modelName">Loading...</span></span>
+            </div>
+            <div class="status-item">
+                <div class="status-indicator" id="accuracyStatus"></div>
+                <span><strong>Accuracy:</strong> <span id="accuracyText">Checking...</span></span>
+            </div>
+            <div class="status-item">
+                <div class="status-indicator" id="responseStatus"></div>
+                <span><strong>Response Time:</strong> <span id="responseTimeText">Checking...</span></span>
+            </div>
+        </div>
+
+        <div class="tab-navigation">
+            <ul class="tab-nav">
+                <li>
+                    <button class="tab-button active" data-tab="sla-guard">
+                        🎯 SLA Guard
+                    </button>
+                </li>
+                <li>
+                    <button class="tab-button" data-tab="license-optimization">
+                        🤖 License Optimization
+                    </button>
+                </li>
+                <li>
+                    <button class="tab-button" data-tab="self-service">
+                        💬 Self-Service & Knowledge
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <!-- SLA Guard Tab Content -->
+        <div id="sla-guard" class="tab-content active">
+            <div class="main-content">
+                <div class="input-section">
+                    <h2>📝 Ticket Analysis</h2>
+
+                    <div class="form-group">
+                        <label for="ticketText">Support Ticket Text</label>
+                        <textarea id="ticketText" class="form-control"
+                            placeholder="Enter the support ticket text here... (supports Hindi-English mix)
+
+Example:
+URGENT: Aadhaar authentication failing in Bhopal region! Citizens cannot access government services. This is critical!"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="userLocation">User Location</label>
+                        <input type="text" id="userLocation" class="form-control" placeholder="e.g., Bhopal, MP">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="userType">User Type</label>
+                        <select id="userType" class="form-control">
+                            <option value="citizen">Citizen</option>
+                            <option value="government_official">Government Official</option>
+                            <option value="business_user">Business User</option>
+                            <option value="citizen_advocate">Citizen Advocate</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="techLevel">Technical Level</label>
+                        <select id="techLevel" class="form-control">
+                            <option value="basic">Basic</option>
+                            <option value="intermediate">Intermediate</option>
+                            <option value="expert">Expert</option>
+                        </select>
+                    </div>
+
+                    <button id="analyzeBtn" class="btn">
+                        🧠 Analyze with Bedrock Claude
+                    </button>
+
+                    <button id="clearBtn" class="btn btn-secondary">
+                        🗑️ Clear
+                    </button>
+
+                    <div class="examples-section">
+                        <h3>📋 Example Tickets</h3>
+                        <div id="exampleButtons"></div>
+                    </div>
+                </div>
+
+                <div class="results-section">
+                    <div class="results-header">
+                        <h2>📊 Analysis Results</h2>
+                    </div>
+                    <div class="results-content">
+                        <div id="loadingIndicator" class="loading">
+                            <div class="spinner"></div>
+                            <p>Analyzing with Bedrock Claude...</p>
+                        </div>
+
+                        <div id="resultsContainer">
+                            <p style="text-align: center; color: #6c757d; padding: 40px;">
+                                Enter a ticket and click "Analyze" to see AI-powered results
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="logs-section">
+                <div class="logs-header">
+                    <h3>🔧 Backend Logs</h3>
+                    <span class="auto-refresh">Auto-refreshing every 2s</span>
+                </div>
+                <div class="logs-content" id="logsContainer">
+                    <div style="text-align: center; color: #6c757d; padding: 20px;">
+                        Loading backend logs...
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End SLA Guard Tab -->
+
+        <!-- License Optimization Tab Content -->
+        <div id="license-optimization" class="tab-content">
+            <div style="padding: 30px;">
+                <!-- License Dashboard Metrics -->
+                <div class="license-dashboard-grid">
+                    <div class="license-metric-card">
+                        <div class="license-metric-icon">📦</div>
+                        <div class="license-metric-value" id="license-total-assets">--</div>
+                        <div class="license-metric-label">Total Assets</div>
+                    </div>
+                    <div class="license-metric-card">
+                        <div class="license-metric-icon">💰</div>
+                        <div class="license-metric-value" id="license-annual-cost">--</div>
+                        <div class="license-metric-label">Annual Cost</div>
+                    </div>
+                    <div class="license-metric-card">
+                        <div class="license-metric-icon">📊</div>
+                        <div class="license-metric-value" id="license-utilization">--</div>
+                        <div class="license-metric-label">Avg Utilization</div>
+                    </div>
+                    <div class="license-metric-card">
+                        <div class="license-metric-icon">💡</div>
+                        <div class="license-metric-value" id="license-savings">--</div>
+                        <div class="license-metric-label">Savings Potential</div>
+                    </div>
+                </div>
+
+                <!-- License Content Grid -->
+                <div class="license-content-grid">
+                    <!-- License Portfolio -->
+                    <div class="results-section">
+                        <div class="results-header">
+                            <h2>📋 License Portfolio</h2>
+                        </div>
+                        <div class="results-content">
+                            <div id="license-portfolio">
+                                <div style="text-align: center; color: #6c757d; padding: 40px;">
+                                    Click "Analyze Portfolio" to load license data
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Insights Panel -->
+                    <div class="results-section">
+                        <div class="results-header">
+                            <h2>� AI Insights</h2>
+                        </div>
+                        <div class="results-content">
+                            <div id="ai-insights-panel">
+                                <div style="text-align: center; color: #6c757d; padding: 40px;">
+                                    AI insights will appear here
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Analysis Section -->
+                <div class="results-section" style="margin-top: 30px;">
+                    <div class="results-header">
+                        <h2>🤖 AI-Powered Analysis</h2>
+                    </div>
+                    <div class="results-content">
+                        <div class="license-content-grid">
+                            <!-- Trend Analysis -->
+                            <div class="analysis-card">
+                                <h3>📈 Usage Trends & Predictions</h3>
+                                <div id="trend-analysis">
+                                    <div style="text-align: center; color: #6c757d; padding: 20px;">
+                                        Run analysis to see AI-powered trends
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Risk Assessment -->
+                            <div class="analysis-card">
+                                <h3>⚠️ Risk Assessment</h3>
+                                <div id="risk-assessment">
+                                    <div style="text-align: center; color: #6c757d; padding: 20px;">
+                                        Risk analysis will appear here
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AI Recommendations -->
+                        <div class="analysis-card" style="margin-top: 20px;">
+                            <h3>💡 AI Optimization Recommendations</h3>
+                            <div id="license-recommendations">
+                                <div style="text-align: center; color: #6c757d; padding: 40px;">
+                                    AI recommendations will appear here
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- GeM Integration Status -->
+                        <div class="analysis-card" style="margin-top: 20px;">
+                            <h3>🛒 GeM Procurement Integration</h3>
+                            <div id="gem-integration-status">
+                                <div style="text-align: center; color: #6c757d; padding: 20px;">
+                                    GeM integration status will appear here
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upload & Analysis Section -->
+                <div class="results-section" style="margin-top: 30px;">
+                    <div class="results-header">
+                        <h2>📤 Upload & Analyze</h2>
+                    </div>
+                    <div class="results-content">
+                        <div class="license-upload-area"
+                            onclick="document.getElementById('license-file-input').click()">
+                            <div class="upload-icon">☁️</div>
+                            <h4>Upload License Data</h4>
+                            <p>Drag & drop CSV/Excel files or click to browse</p>
+                            <input type="file" id="license-file-input" style="display: none;" accept=".csv,.xlsx,.xls"
+                                onchange="handleLicenseFileUpload(event)">
+                        </div>
+                        <div style="text-align: center; margin-top: 20px;">
+                            <button class="btn" onclick="analyzeLicensePortfolio()" style="margin-right: 10px;">
+                                🧠 Analyze Portfolio with AWS AI
+                            </button>
+                            <button class="btn btn-secondary" onclick="loadSampleLicenseData()" style="margin-right: 10px;">
+                                📊 Load Sample Data
+                            </button>
+                            <button class="btn btn-secondary" onclick="addCustomLicenseData()" style="margin-right: 10px;">
+                                ➕ Add License
+                            </button>
+                            <button class="btn btn-secondary" onclick="importLicenseData()" style="margin-right: 10px;">
+                                📁 Import Data
+                            </button>
+                            <button class="btn btn-secondary" onclick="exportLicenseData()">
+                                💾 Export Data
+                            </button>
+                            </button>
+                            <button class="btn btn-secondary" onclick="testAnalysisDisplay()">
+                                🧪 Test Analysis
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End License Optimization Tab -->
+
+        <!-- Self-Service & Knowledge Tab Content -->
+        <div id="self-service" class="tab-content">
+            <div style="padding: 30px;">
+                <!-- Header Section -->
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <h2 style="color: #2c3e50; margin-bottom: 10px;">🤖 AI-Powered Self-Service & Knowledge Base</h2>
+                    <p style="color: #6c757d;">Get instant answers in Hindi or English using AWS GenAI</p>
+                </div>
+
+                <!-- Main Content Grid -->
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px;">
+                    <!-- Chat Interface -->
+                    <div class="chat-container">
+                        <div class="chat-header">
+                            <h3 style="margin: 0;">💬 AI Assistant</h3>
+                            <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 14px;">Ask questions in Hindi or
+                                English</p>
+                            <div class="language-selector">
+                                <button class="lang-btn active" data-lang="en"
+                                    onclick="setLanguage('en')">English</button>
+                                <button class="lang-btn" data-lang="hi" onclick="setLanguage('hi')">हिंदी</button>
+                                <button class="lang-btn" data-lang="mixed" onclick="setLanguage('mixed')">Mixed</button>
+                            </div>
+                        </div>
+
+                        <div class="chat-messages" id="chat-messages">
+                            <!-- Welcome Message -->
+                            <div class="message bot">
+                                <div class="message-avatar">🤖</div>
+                                <div>
+                                    <div class="message-content" id="welcome-message">
+                                        Hello! I'm your AI assistant for government services. Ask me anything about
+                                        UIDAI, MeiTY, DigitalMP, eDistrict, or MPOnline services.
+                                    </div>
+                                    <div class="message-time">Just now</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="typing-indicator" id="typing-indicator">
+                            <div class="message-avatar">🤖</div>
+                            <div>
+                                <span>AI is typing</span>
+                                <div class="typing-dots">
+                                    <div class="typing-dot"></div>
+                                    <div class="typing-dot"></div>
+                                    <div class="typing-dot"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="chat-input-container">
+                            <div class="chat-input-wrapper">
+                                <input type="text" class="chat-input" id="chat-input"
+                                    placeholder="Type your question here..." onkeypress="handleChatKeyPress(event)">
+                                <button class="send-btn" id="send-btn" onclick="sendMessage()">
+                                    ➤
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Knowledge Base & Quick Actions -->
+                    <div class="knowledge-base">
+                        <h3 style="margin-bottom: 20px; color: #2c3e50;">📚 Knowledge Base</h3>
+
+                        <!-- Quick Actions -->
+                        <div style="margin-bottom: 25px;">
+                            <h4 style="margin-bottom: 15px; color: #495057; font-size: 14px;">Quick Questions</h4>
+                            <div class="quick-actions">
+                                <button class="quick-action-btn"
+                                    onclick="askQuickQuestion('How to download Aadhaar card?')">
+                                    📄 Download Aadhaar
+                                </button>
+                                <button class="quick-action-btn"
+                                    onclick="askQuickQuestion('Payment gateway not working')">
+                                    💳 Payment Issues
+                                </button>
+                                <button class="quick-action-btn"
+                                    onclick="askQuickQuestion('Certificate verification process')">
+                                    📋 Certificate Help
+                                </button>
+                                <button class="quick-action-btn" onclick="askQuickQuestion('Portal login problems')">
+                                    🔐 Login Help
+                                </button>
+                                <button class="quick-action-btn"
+                                    onclick="askQuickQuestion('आधार कार्ड कैसे डाउनलोड करें?')">
+                                    📱 आधार सहायता
+                                </button>
+                                <button class="quick-action-btn" onclick="askQuickQuestion('भुगतान की समस्या')">
+                                    💰 भुगतान सहायता
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Knowledge Categories -->
+                        <div class="kb-categories">
+                            <div class="kb-category" onclick="exploreCategory('uidai')">
+                                <div class="kb-category-icon">🆔</div>
+                                <div class="kb-category-title">UIDAI Services</div>
+                                <div class="kb-category-desc">Aadhaar related queries</div>
+                            </div>
+                            <div class="kb-category" onclick="exploreCategory('payment')">
+                                <div class="kb-category-icon">💳</div>
+                                <div class="kb-category-title">Payment Gateway</div>
+                                <div class="kb-category-desc">MeiTY payment issues</div>
+                            </div>
+                            <div class="kb-category" onclick="exploreCategory('portal')">
+                                <div class="kb-category-icon">🌐</div>
+                                <div class="kb-category-title">Digital Portals</div>
+                                <div class="kb-category-desc">DigitalMP & MPOnline</div>
+                            </div>
+                            <div class="kb-category" onclick="exploreCategory('certificate')">
+                                <div class="kb-category-icon">📜</div>
+                                <div class="kb-category-title">Certificates</div>
+                                <div class="kb-category-desc">eDistrict services</div>
+                            </div>
+                        </div>
+
+                        <!-- AI Status -->
+                        <div
+                            style="background: #e8f5e8; border: 1px solid #28a745; border-radius: 8px; padding: 15px; margin-top: 20px;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                                <span style="color: #28a745; font-size: 1.2em;">🤖</span>
+                                <span style="font-weight: 600; color: #155724;">AI Assistant Active</span>
+                            </div>
+                            <div style="color: #155724; font-size: 0.9em;">
+                                Powered by AWS GenAI with multilingual support. Available 24/7 for instant assistance.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End Self-Service & Knowledge Tab -->
+    </div>
+
+    <script>
+        let examples = [];
+
+        // Load system status
+        async function loadSystemStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const status = await response.json();
+
+                // Update backend AI status
+                const backendStatus = document.getElementById('backendStatus');
+                const backendAI = document.getElementById('backendAI');
+                const backend = status.backend_status || {};
+
+                if (status.bedrock_actually_working) {
+                    backendStatus.className = 'status-indicator';
+                    backendAI.textContent = backend.primary_ai || 'Bedrock AI';
+                } else {
+                    backendStatus.className = 'status-indicator warning';
+                    backendAI.textContent = backend.primary_ai || 'Intelligent Fallback';
+                }
+
+                // Update model status
+                const modelStatus = document.getElementById('modelStatus');
+                const modelName = document.getElementById('modelName');
+                modelStatus.className = 'status-indicator';
+
+                if (status.bedrock_actually_working) {
+                    modelName.textContent = 'Llama 3.2 3B';
+                } else {
+                    modelName.textContent = 'Rule-based AI';
+                }
+
+                // Update accuracy status
+                const accuracyStatus = document.getElementById('accuracyStatus');
+                const accuracyText = document.getElementById('accuracyText');
+                accuracyStatus.className = 'status-indicator';
+                accuracyText.textContent = backend.accuracy || '85%';
+
+                // Update response time status
+                const responseStatus = document.getElementById('responseStatus');
+                const responseTimeText = document.getElementById('responseTimeText');
+                responseStatus.className = 'status-indicator';
+                responseTimeText.textContent = backend.response_time || '<1s';
+
+            } catch (error) {
+                console.error('Error loading system status:', error);
+            }
+        }
+
+        // Load examples
+        async function loadExamples() {
+            try {
+                const response = await fetch('/api/examples');
+                examples = await response.json();
+
+                const container = document.getElementById('exampleButtons');
+                container.innerHTML = '';
+
+                examples.forEach((example, index) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'example-btn';
+                    btn.textContent = example.title;
+                    btn.onclick = () => loadExample(index);
+                    container.appendChild(btn);
+                });
+
+            } catch (error) {
+                console.error('Error loading examples:', error);
+            }
+        }
+
+        // Load example into form
+        function loadExample(index) {
+            const example = examples[index];
+            document.getElementById('ticketText').value = example.text;
+            document.getElementById('userLocation').value = example.context.user_location || '';
+            document.getElementById('userType').value = example.context.user_type || 'citizen';
+            document.getElementById('techLevel').value = example.context.technical_level || 'basic';
+        }
+
+        // Clear form
+        function clearForm() {
+            document.getElementById('ticketText').value = '';
+            document.getElementById('userLocation').value = '';
+            document.getElementById('userType').value = 'citizen';
+            document.getElementById('techLevel').value = 'basic';
+            document.getElementById('resultsContainer').innerHTML = '<p style="text-align: center; color: #6c757d; padding: 40px;">Enter a ticket and click "Analyze" to see AI-powered results</p>';
+        }
+
+        // Analyze ticket
+        async function analyzeTicket() {
+            const ticketText = document.getElementById('ticketText').value.trim();
+            if (!ticketText) {
+                alert('Please enter ticket text');
+                return;
+            }
+
+            const context = {
+                user_location: document.getElementById('userLocation').value,
+                user_type: document.getElementById('userType').value,
+                technical_level: document.getElementById('techLevel').value,
+                current_time: new Date().toISOString()
+            };
+
+            // Show loading
+            document.getElementById('loadingIndicator').classList.add('show');
+            document.getElementById('resultsContainer').innerHTML = '';
+            document.getElementById('analyzeBtn').disabled = true;
+
+            try {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        ticket_text: ticketText,
+                        context: context
+                    })
+                });
+
+                const result = await response.json();
+
+                // Hide loading
+                document.getElementById('loadingIndicator').classList.remove('show');
+                document.getElementById('analyzeBtn').disabled = false;
+
+                if (result.success) {
+                    displayResults(result);
+                } else {
+                    displayError(result.error);
+                }
+
+            } catch (error) {
+                document.getElementById('loadingIndicator').classList.remove('show');
+                document.getElementById('analyzeBtn').disabled = false;
+                displayError('Network error: ' + error.message);
+            }
+        }
+
+        // Display results
+        function displayResults(result) {
+            const container = document.getElementById('resultsContainer');
+
+            // Determine which backend was actually used
+            let backendBadge;
+            let backendName;
+
+            if (result.bedrock_used || (result.model_used && result.model_used.includes('llama'))) {
+                backendBadge = '<span class="bedrock-badge">🦙 Bedrock Llama 3.2 Used</span>';
+                backendName = 'Bedrock Llama 3.2 3B';
+            } else {
+                backendBadge = '<span class="fallback-badge">⚡ Intelligent Fallback Used</span>';
+                backendName = 'Rule-based AI System';
+            }
+
+            let html = `
+                <div class="analysis-card">
+                    <h3>⚡ Processing Summary</h3>
+                    <div class="metric-grid">
+                        <div class="metric-item">
+                            <div class="metric-label">Processing Time</div>
+                            <div class="metric-value">${result.processing_time}s</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">AI Backend</div>
+                            <div class="metric-value">${backendBadge}</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Model Details</div>
+                            <div class="metric-value">${backendName}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Analysis results
+            if (result.analysis) {
+                const analysis = result.analysis;
+                const summary = analysis.analysis_summary || {};
+                const technical = analysis.technical_assessment || {};
+                const business = analysis.business_impact || {};
+                const confidence = analysis.confidence_metrics || {};
+
+                html += `
+                    <div class="analysis-card">
+                        <h3>🎯 Ticket Classification</h3>
+                        <div class="metric-grid">
+                            <div class="metric-item">
+                                <div class="metric-label">Department</div>
+                                <div class="metric-value">${summary.department || 'N/A'}</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label">Priority</div>
+                                <div class="metric-value priority-${summary.priority}">${summary.priority || 'N/A'}</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label">Category</div>
+                                <div class="metric-value">${summary.category || 'N/A'}</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label">Urgency Score</div>
+                                <div class="metric-value">${summary.urgency_score || 'N/A'}/10</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label">Impact Scope</div>
+                                <div class="metric-value">${summary.impact_scope || 'N/A'}</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label">AI Confidence</div>
+                                <div class="metric-value">
+                                    ${Math.round((confidence.overall_confidence || 0) * 100)}%
+                                    <div class="confidence-bar">
+                                        <div class="confidence-fill" style="width: ${(confidence.overall_confidence || 0) * 100}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Technical assessment (if available)
+                if (technical.issue_type) {
+                    html += `
+                        <div class="analysis-card">
+                            <h3>🔧 Technical Assessment</h3>
+                            <div class="metric-grid">
+                                <div class="metric-item">
+                                    <div class="metric-label">Issue Type</div>
+                                    <div class="metric-value">${technical.issue_type}</div>
+                                </div>
+                                <div class="metric-item">
+                                    <div class="metric-label">Est. Resolution</div>
+                                    <div class="metric-value">${technical.estimated_resolution_time_hours || 'N/A'} hours</div>
+                                </div>
+                            </div>
+                            ${technical.required_expertise ? `
+                                <p><strong>Required Skills:</strong> ${technical.required_expertise.join(', ')}</p>
+                            ` : ''}
+                        </div>
+                    `;
+                }
+
+                // Business impact (if available)
+                if (business.citizen_impact) {
+                    html += `
+                        <div class="analysis-card">
+                            <h3>💼 Business Impact</h3>
+                            <div class="metric-grid">
+                                <div class="metric-item">
+                                    <div class="metric-label">Citizen Impact</div>
+                                    <div class="metric-value">${business.citizen_impact}</div>
+                                </div>
+                                <div class="metric-item">
+                                    <div class="metric-label">Affected Users</div>
+                                    <div class="metric-value">${(business.estimated_affected_users || 0).toLocaleString()}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            // Breach prediction
+            if (result.breach_prediction) {
+                const breach = result.breach_prediction;
+                const riskLevel = breach.breach_probability > 0.8 ? 'CRITICAL' :
+                    breach.breach_probability > 0.6 ? 'HIGH' :
+                        breach.breach_probability > 0.3 ? 'MEDIUM' : 'LOW';
+
+                html += `
+                    <div class="analysis-card">
+                        <h3>🔮 SLA Breach Prediction</h3>
+                        <div class="metric-grid">
+                            <div class="metric-item">
+                                <div class="metric-label">Breach Probability</div>
+                                <div class="metric-value">${Math.round((breach.breach_probability || 0) * 100)}%</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label">Risk Level</div>
+                                <div class="metric-value">${riskLevel}</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label">Confidence</div>
+                                <div class="metric-value">${Math.round((breach.confidence_level || 0) * 100)}%</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label">Est. Resolution</div>
+                                <div class="metric-value">${breach.estimated_resolution_hours || 'N/A'} hours</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Intelligent response
+            if (result.intelligent_response && result.intelligent_response.automated_response) {
+                const response = result.intelligent_response.automated_response;
+                html += `
+                    <div class="analysis-card">
+                        <h3>💬 Intelligent Response</h3>
+                        <p><strong>Acknowledgment:</strong> ${response.acknowledgment || 'N/A'}</p>
+                        <p><strong>Timeline:</strong> ${response.expected_timeline || 'N/A'}</p>
+                        ${response.workaround_instructions ? `<p><strong>Workaround:</strong> ${response.workaround_instructions}</p>` : ''}
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // Display error
+        function displayError(error) {
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = `
+                <div class="error-message">
+                    <strong>Error:</strong> ${error}
+                </div>
+            `;
+        }
+
+        // Event listeners
+        document.getElementById('analyzeBtn').addEventListener('click', analyzeTicket);
+        document.getElementById('clearBtn').addEventListener('click', clearForm);
+
+        // Load backend logs
+        async function loadBackendLogs() {
+            try {
+                const response = await fetch('/api/logs');
+                const result = await response.json();
+
+                if (result.success) {
+                    displayLogs(result.logs);
+                } else {
+                    console.error('Error loading logs:', result.error);
+                }
+            } catch (error) {
+                console.error('Error loading logs:', error);
+            }
+        }
+
+        // Display logs
+        function displayLogs(logs) {
+            const container = document.getElementById('logsContainer');
+
+            if (!logs || logs.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #6c757d; padding: 20px;">No logs available</div>';
+                return;
+            }
+
+            // Sort logs by timestamp (newest first)
+            const sortedLogs = logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+            let html = '';
+            sortedLogs.forEach(log => {
+                const timestamp = new Date(log.timestamp).toLocaleTimeString();
+                html += `
+                    <div class="log-entry ${log.level}">
+                        <div class="log-timestamp">[${timestamp}] ${log.level}</div>
+                        <div class="log-message">${log.message}</div>
+                        ${log.details && Object.keys(log.details).length > 0 ?
+                        `<div style="font-size: 10px; color: #6c757d; margin-top: 2px;">${JSON.stringify(log.details)}</div>` :
+                        ''
+                    }
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+
+            // Auto-scroll to top (newest logs)
+            container.scrollTop = 0;
+        }
+
+        // Auto-refresh logs
+        let logsInterval;
+        function startLogsAutoRefresh() {
+            // Load logs immediately
+            loadBackendLogs();
+
+            // Set up auto-refresh every 2 seconds
+            logsInterval = setInterval(loadBackendLogs, 2000);
+        }
+
+        function stopLogsAutoRefresh() {
+            if (logsInterval) {
+                clearInterval(logsInterval);
+            }
+        }
+
+        // Tab Management
+        function initializeTabs() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetTab = button.getAttribute('data-tab');
+
+                    // Remove active class from all buttons and contents
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+
+                    // Add active class to clicked button and corresponding content
+                    button.classList.add('active');
+                    document.getElementById(targetTab).classList.add('active');
+
+                    // Initialize tab-specific functionality
+                    if (targetTab === 'license-optimization') {
+                        initializeLicenseOptimization();
+                    } else if (targetTab === 'self-service') {
+                        initializeSelfService();
+                    }
+                });
+            });
+        }
+
+        // License Optimization Functionality
+        let licenseData = [];
+        let licenseRecommendations = [];
+        
+        // Notification system for license optimization
+        function showNotification(message, type = 'info') {
+            console.log(`📢 ${type.toUpperCase()}: ${message}`);
+            
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed; top: 20px; right: 20px; z-index: 10000;
+                padding: 15px 20px; border-radius: 8px; color: white;
+                font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                max-width: 400px; word-wrap: break-word;
+            `;
+            
+            // Set colors based on type
+            const colors = {
+                'success': '#28a745',
+                'error': '#dc3545', 
+                'warning': '#ffc107',
+                'info': '#17a2b8'
+            };
+            
+            notification.style.background = colors[type] || colors.info;
+            notification.textContent = message;
+            
+            // Add to page
+            document.body.appendChild(notification);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 5000);
+            
+            // Click to dismiss
+            notification.addEventListener('click', () => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            });
+        }
+        
+        function loadSampleLicenseData() {
+            console.log('📊 Loading comprehensive sample license data...');
+            showNotification('📊 Loading sample license data...', 'info');
+            
+            licenseData = [
+                {
+                    id: 'LIC-001',
+                    name: 'Microsoft Office 365 E3',
+                    vendor: 'Microsoft',
+                    department: 'IT Department',
+                    totalLicenses: 500,
+                    usedLicenses: 320,
+                    costPerLicense: 2200,
+                    renewalDate: '2024-12-15',
+                    category: 'Productivity Suite',
+                    contractType: 'Annual Subscription'
+                },
+                {
+                    id: 'LIC-002',
+                    name: 'Adobe Creative Cloud',
+                    vendor: 'Adobe',
+                    department: 'Design Team',
+                    totalLicenses: 50,
+                    usedLicenses: 48,
+                    costPerLicense: 4500,
+                    renewalDate: '2024-11-30',
+                    category: 'Design Software',
+                    contractType: 'Annual Subscription'
+                },
+                {
+                    id: 'LIC-003',
+                    name: 'Zoom Pro',
+                    vendor: 'Zoom',
+                    department: 'HR Department',
+                    totalLicenses: 200,
+                    usedLicenses: 85,
+                    costPerLicense: 1200,
+                    renewalDate: '2025-01-20',
+                    category: 'Communication',
+                    contractType: 'Annual Subscription'
+                },
+                {
+                    id: 'LIC-004',
+                    name: 'Microsoft Teams Premium',
+                    vendor: 'Microsoft',
+                    department: 'IT Department',
+                    totalLicenses: 300,
+                    usedLicenses: 120,
+                    costPerLicense: 800,
+                    renewalDate: '2024-12-15',
+                    category: 'Communication',
+                    contractType: 'Annual Subscription'
+                },
+                {
+                    id: 'LIC-005',
+                    name: 'Salesforce Enterprise',
+                    vendor: 'Salesforce',
+                    department: 'Sales Team',
+                    totalLicenses: 100,
+                    usedLicenses: 95,
+                    costPerLicense: 12000,
+                    renewalDate: '2025-03-10',
+                    category: 'CRM',
+                    contractType: 'Annual Subscription'
+                },
+                {
+                    id: 'LIC-006',
+                    name: 'Slack Business+',
+                    vendor: 'Slack',
+                    department: 'Engineering',
+                    totalLicenses: 150,
+                    usedLicenses: 60,
+                    costPerLicense: 900,
+                    renewalDate: '2024-11-25',
+                    category: 'Communication',
+                    contractType: 'Annual Subscription'
+                },
+                {
+                    id: 'LIC-007',
+                    name: 'Atlassian Jira',
+                    vendor: 'Atlassian',
+                    department: 'Engineering',
+                    totalLicenses: 80,
+                    usedLicenses: 75,
+                    costPerLicense: 1500,
+                    renewalDate: '2025-02-14',
+                    category: 'Project Management',
+                    contractType: 'Annual Subscription'
+                },
+                {
+                    id: 'LIC-008',
+                    name: 'AutoCAD',
+                    vendor: 'Autodesk',
+                    department: 'Engineering',
+                    totalLicenses: 25,
+                    usedLicenses: 12,
+                    costPerLicense: 18000,
+                    renewalDate: '2025-01-05',
+                    category: 'CAD Software',
+                    contractType: 'Annual Subscription'
+                },
+                {
+                    id: 'LIC-009',
+                    name: 'Tableau Desktop',
+                    vendor: 'Tableau',
+                    department: 'Analytics Team',
+                    totalLicenses: 30,
+                    usedLicenses: 28,
+                    costPerLicense: 8500,
+                    renewalDate: '2024-12-31',
+                    category: 'Analytics',
+                    contractType: 'Annual Subscription'
+                },
+                {
+                    id: 'LIC-010',
+                    name: 'DocuSign Business Pro',
+                    vendor: 'DocuSign',
+                    department: 'Legal Team',
+                    totalLicenses: 40,
+                    usedLicenses: 35,
+                    costPerLicense: 3600,
+                    renewalDate: '2025-04-15',
+                    category: 'Document Management',
+                    contractType: 'Annual Subscription'
+                }
+            ];
+            
+            console.log(`✅ Loaded ${licenseData.length} sample license assets`);
+            updateLicenseDashboard();
+            showNotification(`✅ Loaded ${licenseData.length} sample license assets successfully!`, 'success');
+        }
+        
+        function updateLicenseDashboard() {
+            if (licenseData.length === 0) {
+                document.getElementById('license-total-assets').textContent = '0';
+                document.getElementById('license-annual-cost').textContent = '₹0';
+                document.getElementById('license-utilization').textContent = '0%';
+                document.getElementById('license-savings').textContent = '₹0';
+                return;
+            }
+            
+            // Calculate metrics
+            const totalAssets = licenseData.length;
+            const totalAnnualCost = licenseData.reduce((sum, asset) => 
+                sum + (asset.costPerLicense * asset.totalLicenses * 12), 0);
+            
+            let totalLicenses = 0;
+            let totalUsed = 0;
+            let savingsPotential = 0;
+            
+            licenseData.forEach(asset => {
+                totalLicenses += asset.totalLicenses;
+                totalUsed += asset.usedLicenses;
+                
+                // Calculate savings potential for underutilized assets
+                const utilization = asset.usedLicenses / asset.totalLicenses;
+                if (utilization < 0.7) {
+                    const optimalLicenses = Math.max(Math.ceil(asset.usedLicenses * 1.2), 1);
+                    const excessLicenses = asset.totalLicenses - optimalLicenses;
+                    savingsPotential += excessLicenses * asset.costPerLicense * 12;
+                }
+            });
+            
+            const avgUtilization = totalUsed / totalLicenses;
+            
+            // Update dashboard
+            document.getElementById('license-total-assets').textContent = totalAssets.toString();
+            document.getElementById('license-annual-cost').textContent = `₹${(totalAnnualCost / 100000).toFixed(1)}L`;
+            document.getElementById('license-utilization').textContent = `${(avgUtilization * 100).toFixed(1)}%`;
+            document.getElementById('license-savings').textContent = `₹${(savingsPotential / 100000).toFixed(1)}L`;
+            
+            // Update portfolio display
+            displayLicensePortfolio();
+        }
+        
+        function displayLicensePortfolio() {
+            const portfolioDiv = document.getElementById('license-portfolio');
+            
+            if (licenseData.length === 0) {
+                portfolioDiv.innerHTML = `
+                    <div style="text-align: center; color: #6c757d; padding: 40px;">
+                        No license data available. Load sample data or import your own.
+                    </div>
+                `;
+                return;
+            }
+            
+            const portfolioHTML = `
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
+                        <thead style="background: #f8f9fa; position: sticky; top: 0;">
+                            <tr>
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid #dee2e6;">Asset</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid #dee2e6;">Vendor</th>
+                                <th style="padding: 10px; text-align: center; border-bottom: 1px solid #dee2e6;">Utilization</th>
+                                <th style="padding: 10px; text-align: right; border-bottom: 1px solid #dee2e6;">Annual Cost</th>
+                                <th style="padding: 10px; text-align: center; border-bottom: 1px solid #dee2e6;">Renewal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${licenseData.map(asset => {
+                                const utilization = asset.usedLicenses / asset.totalLicenses;
+                                const annualCost = asset.costPerLicense * asset.totalLicenses * 12;
+                                const renewalDate = new Date(asset.renewalDate);
+                                const daysToRenewal = Math.ceil((renewalDate - new Date()) / (1000 * 60 * 60 * 24));
+                                
+                                let utilizationColor = '#28a745';
+                                if (utilization < 0.5) utilizationColor = '#dc3545';
+                                else if (utilization < 0.7) utilizationColor = '#ffc107';
+                                
+                                let renewalColor = '#6c757d';
+                                if (daysToRenewal < 30) renewalColor = '#dc3545';
+                                else if (daysToRenewal < 90) renewalColor = '#ffc107';
+                                
+                                return `
+                                    <tr style="border-bottom: 1px solid #f1f3f4;">
+                                        <td style="padding: 10px;">
+                                            <div style="font-weight: 500;">${asset.name}</div>
+                                            <div style="font-size: 0.8em; color: #6c757d;">${asset.department}</div>
+                                        </td>
+                                        <td style="padding: 10px;">${asset.vendor}</td>
+                                        <td style="padding: 10px; text-align: center;">
+                                            <div style="color: ${utilizationColor}; font-weight: 500;">
+                                                ${(utilization * 100).toFixed(1)}%
+                                            </div>
+                                            <div style="font-size: 0.8em; color: #6c757d;">
+                                                ${asset.usedLicenses}/${asset.totalLicenses}
+                                            </div>
+                                        </td>
+                                        <td style="padding: 10px; text-align: right; font-weight: 500;">
+                                            ₹${(annualCost / 100000).toFixed(1)}L
+                                        </td>
+                                        <td style="padding: 10px; text-align: center;">
+                                            <div style="color: ${renewalColor}; font-size: 0.9em;">
+                                                ${daysToRenewal > 0 ? `${daysToRenewal}d` : 'Expired'}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            portfolioDiv.innerHTML = portfolioHTML;
+        }
+        
+        function addCustomLicenseData() {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.5); display: flex; align-items: center;
+                justify-content: center; z-index: 1000;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: white; padding: 30px; border-radius: 10px; max-width: 600px; width: 90%;">
+                    <h3 style="margin-bottom: 20px;">Add License Asset</h3>
+                    <form id="licenseForm">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                            <input type="text" id="licenseName" placeholder="License Name" required style="padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                            <input type="text" id="vendor" placeholder="Vendor" required style="padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                            <input type="text" id="department" placeholder="Department" required style="padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                            <select id="category" required style="padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                                <option value="">Select Category</option>
+                                <option value="Productivity Suite">Productivity Suite</option>
+                                <option value="Communication">Communication</option>
+                                <option value="Design Software">Design Software</option>
+                                <option value="CRM">CRM</option>
+                                <option value="Project Management">Project Management</option>
+                                <option value="Analytics">Analytics</option>
+                                <option value="CAD Software">CAD Software</option>
+                                <option value="Document Management">Document Management</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <input type="number" id="totalLicenses" placeholder="Total Licenses" required style="padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                            <input type="number" id="usedLicenses" placeholder="Used Licenses" required style="padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                            <input type="number" id="costPerLicense" placeholder="Cost per License (₹)" required style="padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                            <input type="date" id="renewalDate" required style="padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                        </div>
+                        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                            <button type="button" onclick="this.closest('.modal').remove()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">Cancel</button>
+                            <button type="submit" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">Add License</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            modal.className = 'modal';
+            document.body.appendChild(modal);
+            
+            document.getElementById('licenseForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const newLicense = {
+                    id: 'LIC-' + String(licenseData.length + 1).padStart(3, '0'),
+                    name: document.getElementById('licenseName').value,
+                    vendor: document.getElementById('vendor').value,
+                    department: document.getElementById('department').value,
+                    category: document.getElementById('category').value,
+                    totalLicenses: parseInt(document.getElementById('totalLicenses').value),
+                    usedLicenses: parseInt(document.getElementById('usedLicenses').value),
+                    costPerLicense: parseFloat(document.getElementById('costPerLicense').value),
+                    renewalDate: document.getElementById('renewalDate').value,
+                    contractType: 'Annual Subscription'
+                };
+                
+                licenseData.push(newLicense);
+                updateLicenseDashboard();
+                modal.remove();
+                
+                showNotification('✅ License asset added successfully!', 'success');
+            });
+        }
+        
+        function importLicenseData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json,.csv';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        let importedData;
+                        if (file.name.endsWith('.json')) {
+                            importedData = JSON.parse(e.target.result);
+                        } else if (file.name.endsWith('.csv')) {
+                            // Simple CSV parsing
+                            const lines = e.target.result.split('\n');
+                            const headers = lines[0].split(',');
+                            importedData = [];
+                            
+                            for (let i = 1; i < lines.length; i++) {
+                                if (lines[i].trim()) {
+                                    const values = lines[i].split(',');
+                                    const obj = {};
+                                    headers.forEach((header, index) => {
+                                        obj[header.trim()] = values[index] ? values[index].trim() : '';
+                                    });
+                                    importedData.push(obj);
+                                }
+                            }
+                        }
+                        
+                        if (Array.isArray(importedData)) {
+                            licenseData = [...licenseData, ...importedData];
+                            updateLicenseDashboard();
+                            showNotification(`✅ Imported ${importedData.length} license assets!`, 'success');
+                        } else {
+                            throw new Error('Invalid data format');
+                        }
+                    } catch (error) {
+                        showNotification('❌ Error importing data: ' + error.message, 'error');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+        
+        function exportLicenseData() {
+            if (licenseData.length === 0) {
+                showNotification('⚠️ No license data to export', 'warning');
+                return;
+            }
+            
+            const dataStr = JSON.stringify(licenseData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `license_portfolio_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            showNotification('✅ License data exported successfully!', 'success');
+        }
+
+        function initializeLicenseOptimization() {
+            console.log('🤖 Initializing License Optimization tab...');
+            
+            // Add debugging for button functionality
+            console.log('🔧 Checking button functions...');
+            
+            // Test if functions are defined
+            const functions = ['loadSampleLicenseData', 'addCustomLicenseData', 'importLicenseData', 'exportLicenseData', 'analyzeLicensePortfolio'];
+            functions.forEach(func => {
+                if (typeof window[func] === 'function') {
+                    console.log(`✅ ${func} is defined`);
+                } else {
+                    console.error(`❌ ${func} is NOT defined`);
+                }
+            });
+            
+            // Initialize with comprehensive sample data if not already loaded
+            if (licenseData.length === 0) {
+                console.log('📊 Loading sample data...');
+                loadSampleLicenseData();
+                loadSampleLicenseData();
+            } else {
+                // If data is already loaded, show the analysis
+                generateSampleRecommendations();
+            }
+        }
+
+        function loadSampleLicenseData() {
+            licenseData = [
+                {
+                    id: 'LIC-001',
+                    name: 'Zoom Pro',
+                    vendor: 'Zoom',
+                    totalLicenses: 100,
+                    usedLicenses: 45,
+                    costPerLicense: 1200,
+                    renewalDate: '2024-12-15',
+                    department: 'IT'
+                },
+                {
+                    id: 'LIC-002',
+                    name: 'Adobe Creative Suite',
+                    vendor: 'Adobe',
+                    totalLicenses: 50,
+                    usedLicenses: 48,
+                    costPerLicense: 4500,
+                    renewalDate: '2024-11-30',
+                    department: 'Marketing'
+                },
+                {
+                    id: 'LIC-003',
+                    name: 'Microsoft Teams',
+                    vendor: 'Microsoft',
+                    totalLicenses: 100,
+                    usedLicenses: 40,
+                    costPerLicense: 800,
+                    renewalDate: '2025-01-20',
+                    department: 'IT'
+                },
+                {
+                    id: 'LIC-004',
+                    name: 'Antivirus Enterprise',
+                    vendor: 'Symantec',
+                    totalLicenses: 200,
+                    usedLicenses: 180,
+                    costPerLicense: 600,
+                    renewalDate: '2024-12-01',
+                    department: 'IT'
+                },
+                {
+                    id: 'LIC-005',
+                    name: 'Slack Business+',
+                    vendor: 'Slack',
+                    totalLicenses: 80,
+                    usedLicenses: 25,
+                    costPerLicense: 960,
+                    renewalDate: '2025-02-10',
+                    department: 'Operations'
+                }
+            ];
+
+            updateLicenseMetrics();
+            displayLicensePortfolio();
+
+            // Automatically run analysis after loading sample data
+            setTimeout(() => {
+                generateSampleRecommendations();
+            }, 500);
+
+            showNotification('Sample license data loaded successfully! AI analysis running...', 'success');
+        }
+
+        function updateLicenseMetrics() {
+            const totalAssets = licenseData.length;
+            const totalCost = licenseData.reduce((sum, license) =>
+                sum + (license.totalLicenses * license.costPerLicense), 0);
+            const totalUsed = licenseData.reduce((sum, license) => sum + license.usedLicenses, 0);
+            const totalLicenses = licenseData.reduce((sum, license) => sum + license.totalLicenses, 0);
+            const utilizationRate = totalUsed / totalLicenses;
+
+            // Calculate potential savings from underutilized licenses
+            let potentialSavings = 0;
+            licenseData.forEach(license => {
+                const utilization = license.usedLicenses / license.totalLicenses;
+                if (utilization < 0.7) {
+                    const wastedLicenses = license.totalLicenses - Math.ceil(license.usedLicenses * 1.2);
+                    potentialSavings += wastedLicenses * license.costPerLicense * 12; // Annual
+                }
+            });
+
+            document.getElementById('license-total-assets').textContent = totalAssets;
+            document.getElementById('license-annual-cost').textContent = `₹${(totalCost * 12 / 100000).toFixed(1)}L`;
+            document.getElementById('license-utilization').textContent = `${(utilizationRate * 100).toFixed(1)}%`;
+            document.getElementById('license-savings').textContent = `₹${(potentialSavings / 100000).toFixed(1)}L`;
+        }
+
+        function displayLicensePortfolio() {
+            const portfolioContainer = document.getElementById('license-portfolio');
+
+            let html = '';
+            licenseData.forEach(license => {
+                const utilizationRate = license.usedLicenses / license.totalLicenses;
+                const utilizationClass = utilizationRate >= 0.8 ? 'utilization-high' :
+                    utilizationRate >= 0.5 ? 'utilization-medium' : 'utilization-low';
+
+                html += `
+                    <div class="license-item">
+                        <div class="license-header">
+                            <div>
+                                <div class="license-name">${license.name}</div>
+                                <div class="license-vendor">${license.vendor} • ${license.department}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-weight: 600;">₹${(license.costPerLicense * license.totalLicenses / 1000).toFixed(0)}K/year</div>
+                                <div style="font-size: 0.9em; color: #6c757d;">Renewal: ${license.renewalDate}</div>
+                            </div>
+                        </div>
+                        <div class="license-stats">
+                            <div>
+                                <div style="font-size: 0.9em; color: #6c757d;">Usage</div>
+                                <div>${license.usedLicenses}/${license.totalLicenses} licenses</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.9em; color: #6c757d;">Utilization</div>
+                                <div class="utilization-bar">
+                                    <div class="utilization-fill ${utilizationClass}" style="width: ${utilizationRate * 100}%"></div>
+                                </div>
+                                <div style="text-align: center; font-size: 0.9em;">${(utilizationRate * 100).toFixed(1)}%</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            portfolioContainer.innerHTML = html;
+        }
+
+        async function analyzeLicensePortfolio() {
+            console.log('🧠 Analyze Portfolio button clicked!');
+            showNotification('🧠 Starting license portfolio analysis...', 'info');
+            
+            // First ensure we have license data
+            if (licenseData.length === 0) {
+                loadSampleLicenseData();
+            }
+
+            showNotification('Running AI analysis on license portfolio...', 'info');
+
+            // Show loading in all relevant sections
+            document.getElementById('license-recommendations').innerHTML = `
+                <div style="text-align: center; padding: 40px;">
+                    <div class="spinner"></div>
+                    <p>AI analyzing license portfolio...</p>
+                </div>
+            `;
+
+            document.getElementById('ai-insights-panel').innerHTML = `
+                <div style="text-align: center; padding: 40px;">
+                    <div class="spinner"></div>
+                    <p>Generating AI insights...</p>
+                </div>
+            `;
+
+            document.getElementById('trend-analysis').innerHTML = `
+                <div style="text-align: center; padding: 20px;">
+                    <div class="spinner"></div>
+                    <p>Analyzing trends...</p>
+                </div>
+            `;
+
+            try {
+                showNotification('🤖 Analyzing license portfolio with AWS AI...', 'info');
+                
+                // Call the enhanced license optimization API
+                const response = await fetch('/api/license/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        license_data: licenseData
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    licenseRecommendations = result.recommendations || [];
+                    displayLicenseRecommendations(result);
+                    showNotification('AI analysis completed! Recommendations generated.', 'success');
+                } else {
+                    // Fallback to sample recommendations
+                    console.log('API returned error, using sample data:', result.error);
+                    generateSampleRecommendations();
+                    showNotification('Using enhanced sample analysis (API in development)', 'info');
+                }
+
+            } catch (error) {
+                console.error('License analysis error:', error);
+                generateSampleRecommendations();
+                showNotification('Using enhanced sample analysis (API in development)', 'info');
+            }
+        }
+
+        function generateSampleRecommendations() {
+            licenseRecommendations = [
+                {
+                    id: 'REC-001',
+                    type: 'AI-Powered License Reduction',
+                    description: 'AI analysis shows Zoom Pro usage patterns indicate 40 licenses unused for 90+ days. Machine learning models predict optimal count of 60 licenses with 20% buffer for growth.',
+                    savings: 576000,
+                    priority: 'HIGH',
+                    confidence: 0.92,
+                    gemRequired: true,
+                    assetId: 'LIC-001'
+                },
+                {
+                    id: 'REC-002',
+                    type: 'Smart Consolidation',
+                    description: 'Natural Language Processing detected 78% functional overlap between Microsoft Teams and Slack. AI recommends consolidating to Teams with enhanced features for ₹460K annual savings.',
+                    savings: 460800,
+                    priority: 'HIGH',
+                    confidence: 0.87,
+                    gemRequired: true,
+                    assetId: 'LIC-003'
+                },
+                {
+                    id: 'REC-003',
+                    type: 'Predictive Renewal Optimization',
+                    description: 'AI market analysis shows Adobe pricing trends and usage patterns. Recommends negotiating multi-year contract with volume discounts based on 96% utilization rate.',
+                    savings: 337500,
+                    priority: 'MEDIUM',
+                    confidence: 0.83,
+                    gemRequired: true,
+                    assetId: 'LIC-002'
+                },
+                {
+                    id: 'REC-004',
+                    type: 'Behavioral Analytics Optimization',
+                    description: 'Deep learning analysis of user behavior shows Slack usage concentrated in 31% of licenses. AI suggests rightsizing to 35 licenses with auto-scaling option.',
+                    savings: 518400,
+                    priority: 'HIGH',
+                    confidence: 0.91,
+                    gemRequired: true,
+                    assetId: 'LIC-005'
+                },
+                {
+                    id: 'REC-005',
+                    type: 'Vendor Risk Mitigation',
+                    description: 'AI risk assessment identifies over-dependence on single vendors. Recommends diversifying antivirus solutions to reduce vendor lock-in and negotiate better terms.',
+                    savings: 180000,
+                    priority: 'MEDIUM',
+                    confidence: 0.76,
+                    gemRequired: true,
+                    assetId: 'LIC-004'
+                }
+            ];
+
+            // Create comprehensive analysis result
+            const analysisResult = {
+                recommendations: licenseRecommendations,
+                analysis: {
+                    ai_insights: {
+                        portfolio_health_score: 73,
+                        optimization_potential: 2072700,
+                        top_spending_vendors: [
+                            ['Adobe', 2700000],
+                            ['Microsoft', 960000],
+                            ['Zoom', 1440000],
+                            ['Slack', 921600],
+                            ['Symantec', 1440000]
+                        ],
+                        department_breakdown: {
+                            'IT': 3360000,
+                            'Marketing': 2700000,
+                            'Operations': 921600
+                        }
+                    }
+                }
+            };
+
+            displayLicenseRecommendations(analysisResult);
+
+            // Also populate the AI insights immediately
+            displayAIInsights(analysisResult);
+            displayTrendAnalysis(analysisResult);
+            displayRiskAssessment(analysisResult);
+            displayGeMIntegrationStatus(analysisResult);
+        }
+
+        function displayLicenseRecommendations(result) {
+            const recommendationsContainer = document.getElementById('license-recommendations');
+            const recommendations = result.recommendations || [];
+
+            if (recommendations.length === 0) {
+                recommendationsContainer.innerHTML = `
+                    <div style="text-align: center; color: #6c757d; padding: 40px;">
+                        No recommendations available
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            recommendations.forEach(rec => {
+                html += `
+                    <div class="recommendation-card">
+                        <div class="recommendation-header">
+                            <span class="recommendation-type">${rec.type}</span>
+                            <span class="savings-badge">₹${(rec.savings / 1000).toFixed(0)}K savings</span>
+                        </div>
+                        <div style="margin-bottom: 15px; color: #6c757d; font-size: 0.9em;">
+                            ${rec.description}
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <span class="priority-${rec.priority.toLowerCase()}">Priority: ${rec.priority}</span>
+                            <span style="font-size: 0.9em;">Confidence: ${(rec.confidence * 100).toFixed(0)}%</span>
+                            ${rec.gemRequired ? '<span class="gem-badge">GeM Required</span>' : ''}
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn" onclick="approveLicenseRecommendation('${rec.id}')" style="font-size: 0.9em;">
+                                ✅ Approve
+                            </button>
+                            <button class="btn btn-secondary" onclick="viewLicenseDetails('${rec.id}')" style="font-size: 0.9em;">
+                                👁️ Details
+                            </button>
+                            ${rec.gemRequired ? `<button class="btn btn-secondary" onclick="initiateGeMProcess('${rec.id}')" style="font-size: 0.9em;">
+                                🛒 GeM Process
+                            </button>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            recommendationsContainer.innerHTML = html;
+
+            // Also display AI insights
+            displayAIInsights(result);
+            displayTrendAnalysis(result);
+            displayRiskAssessment(result);
+            displayGeMIntegrationStatus(result);
+        }
+
+        function displayAIInsights(result) {
+            const insightsContainer = document.getElementById('ai-insights-panel');
+            const insights = result.analysis?.ai_insights || {};
+
+            let html = `
+                <div class="analysis-card" style="margin: 0;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div class="metric-item">
+                            <div class="metric-label">Portfolio Health</div>
+                            <div class="metric-value" style="color: ${insights.portfolio_health_score > 75 ? '#28a745' : insights.portfolio_health_score > 50 ? '#ffc107' : '#dc3545'};">
+                                ${insights.portfolio_health_score || 0}/100
+                            </div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Optimization Potential</div>
+                            <div class="metric-value" style="color: #28a745;">
+                                ₹${((insights.optimization_potential || 0) / 100000).toFixed(1)}L
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="margin-bottom: 10px; color: #2c3e50;">🏢 Top Spending Vendors</h4>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+            `;
+
+            const topVendors = insights.top_spending_vendors || [];
+            topVendors.slice(0, 3).forEach(([vendor, cost]) => {
+                html += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: #f8f9fa; border-radius: 6px;">
+                        <span style="font-weight: 500;">${vendor}</span>
+                        <span style="color: #dc3545; font-weight: 600;">₹${(cost / 1000).toFixed(0)}K</span>
+                    </div>
+                `;
+            });
+
+            html += `
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 style="margin-bottom: 10px; color: #2c3e50;">📊 Department Breakdown</h4>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+            `;
+
+            const deptBreakdown = insights.department_breakdown || {};
+            Object.entries(deptBreakdown).slice(0, 3).forEach(([dept, cost]) => {
+                html += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: #f8f9fa; border-radius: 6px;">
+                        <span style="font-weight: 500;">${dept}</span>
+                        <span style="color: #3498db; font-weight: 600;">₹${(cost / 1000).toFixed(0)}K</span>
+                    </div>
+                `;
+            });
+
+            html += `
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            insightsContainer.innerHTML = html;
+        }
+
+        function displayTrendAnalysis(result) {
+            const trendContainer = document.getElementById('trend-analysis');
+
+            // Simulate AI-powered trend analysis
+            const trends = [
+                {
+                    trend: "📈 Communication Tools Usage",
+                    description: "AI predicts 25% increase in remote collaboration tools usage over next 6 months",
+                    confidence: 87,
+                    impact: "Medium"
+                },
+                {
+                    trend: "📉 Design Software Utilization",
+                    description: "Creative suite usage declining by 15% - potential for license reduction",
+                    confidence: 92,
+                    impact: "High"
+                },
+                {
+                    trend: "🔄 Seasonal Patterns Detected",
+                    description: "Q4 typically shows 30% higher usage across all categories",
+                    confidence: 78,
+                    impact: "Low"
+                }
+            ];
+
+            let html = '';
+            trends.forEach(trend => {
+                html += `
+                    <div style="margin-bottom: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #3498db;">
+                        <div style="font-weight: 600; margin-bottom: 8px; color: #2c3e50;">${trend.trend}</div>
+                        <div style="color: #6c757d; font-size: 0.9em; margin-bottom: 10px;">${trend.description}</div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8em;">
+                            <span>Confidence: <strong>${trend.confidence}%</strong></span>
+                            <span class="priority-${trend.impact.toLowerCase()}">Impact: ${trend.impact}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            trendContainer.innerHTML = html;
+        }
+
+        function displayRiskAssessment(result) {
+            const riskContainer = document.getElementById('risk-assessment');
+
+            // Simulate AI-powered risk assessment
+            const risks = [
+                {
+                    risk: "🚨 License Compliance Risk",
+                    level: "Medium",
+                    description: "3 licenses approaching renewal without usage review",
+                    action: "Schedule usage audit before renewal"
+                },
+                {
+                    risk: "💰 Budget Overrun Risk",
+                    level: "Low",
+                    description: "Current spending within 5% of annual budget",
+                    action: "Monitor Q4 spending closely"
+                },
+                {
+                    risk: "🔄 Vendor Dependency Risk",
+                    level: "High",
+                    description: "65% of budget concentrated in top 2 vendors",
+                    action: "Diversify vendor portfolio"
+                }
+            ];
+
+            let html = '';
+            risks.forEach(risk => {
+                const riskColor = risk.level === 'High' ? '#dc3545' : risk.level === 'Medium' ? '#ffc107' : '#28a745';
+                html += `
+                    <div style="margin-bottom: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid ${riskColor};">
+                        <div style="font-weight: 600; margin-bottom: 8px; color: #2c3e50;">${risk.risk}</div>
+                        <div style="color: #6c757d; font-size: 0.9em; margin-bottom: 10px;">${risk.description}</div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: ${riskColor}; font-weight: 600; font-size: 0.9em;">Risk: ${risk.level}</span>
+                            <span style="font-size: 0.8em; color: #495057;">Action: ${risk.action}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            riskContainer.innerHTML = html;
+        }
+
+        function displayGeMIntegrationStatus(result) {
+            const gemContainer = document.getElementById('gem-integration-status');
+
+            // Simulate GeM integration status
+            const gemStatus = {
+                activeRequests: 3,
+                pendingApprovals: 2,
+                completedProcurements: 8,
+                totalSavings: 2400000
+            };
+
+            let html = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                    <div class="metric-item" style="text-align: center;">
+                        <div class="metric-label">Active Requests</div>
+                        <div class="metric-value" style="color: #3498db;">${gemStatus.activeRequests}</div>
+                    </div>
+                    <div class="metric-item" style="text-align: center;">
+                        <div class="metric-label">Pending Approvals</div>
+                        <div class="metric-value" style="color: #ffc107;">${gemStatus.pendingApprovals}</div>
+                    </div>
+                    <div class="metric-item" style="text-align: center;">
+                        <div class="metric-label">Completed</div>
+                        <div class="metric-value" style="color: #28a745;">${gemStatus.completedProcurements}</div>
+                    </div>
+                    <div class="metric-item" style="text-align: center;">
+                        <div class="metric-label">Total Savings</div>
+                        <div class="metric-value" style="color: #28a745;">₹${(gemStatus.totalSavings / 100000).toFixed(1)}L</div>
+                    </div>
+                </div>
+                
+                <div style="background: #e8f5e8; border: 1px solid #28a745; border-radius: 8px; padding: 15px;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                        <span style="color: #28a745; font-size: 1.2em;">✅</span>
+                        <span style="font-weight: 600; color: #155724;">GeM Integration Active</span>
+                    </div>
+                    <div style="color: #155724; font-size: 0.9em;">
+                        All license optimization recommendations are automatically integrated with GeM procurement workflows. 
+                        Finance approvals and vendor negotiations are streamlined through the government e-marketplace.
+                    </div>
+                </div>
+                
+                <div style="margin-top: 15px;">
+                    <button class="btn" onclick="viewGeMDashboard()" style="margin-right: 10px;">
+                        🛒 View GeM Dashboard
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportGeMReport()">
+                        📊 Export Report
+                    </button>
+                </div>
+            `;
+
+            gemContainer.innerHTML = html;
+        }
+
+        function approveLicenseRecommendation(recId) {
+            showNotification(`Initiating approval workflow for recommendation ${recId}...`, 'info');
+
+            setTimeout(() => {
+                showNotification('Approval request sent to finance team!', 'success');
+            }, 1500);
+        }
+
+        function viewLicenseDetails(recId) {
+            const rec = licenseRecommendations.find(r => r.id === recId);
+            if (rec) {
+                showNotification(`Opening detailed analysis for ${rec.type} recommendation...`, 'info');
+            }
+        }
+
+        function initiateGeMProcess(recId) {
+            const rec = licenseRecommendations.find(r => r.id === recId);
+            if (rec) {
+                showNotification(`Initiating GeM procurement process for ${rec.type}...`, 'info');
+
+                setTimeout(() => {
+                    const gemId = `GEM-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+                    showNotification(`GeM procurement request created: ${gemId}`, 'success');
+                }, 2000);
+            }
+        }
+
+        function handleLicenseFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                showNotification(`License file "${file.name}" uploaded successfully!`, 'success');
+                // In a real implementation, you would parse the file and update licenseData
+            }
+        }
+
+        function viewGeMDashboard() {
+            showNotification('Opening GeM procurement dashboard...', 'info');
+            // In a real implementation, this would open the GeM dashboard
+        }
+
+        function exportGeMReport() {
+            showNotification('Generating GeM integration report...', 'info');
+            setTimeout(() => {
+                showNotification('GeM report exported successfully!', 'success');
+            }, 2000);
+        }
+
+        function testAnalysisDisplay() {
+            showNotification('Testing AI analysis display...', 'info');
+
+            // Ensure we have sample data
+            if (licenseData.length === 0) {
+                loadSampleLicenseData();
+            }
+
+            // Force display of all analysis sections
+            generateSampleRecommendations();
+
+            showNotification('AI analysis display test completed!', 'success');
+        }
+
+        // Self-Service & Knowledge Base Functionality
+        let currentLanguage = 'en';
+        let chatHistory = [];
+
+        function initializeSelfService() {
+            // Initialize chat with welcome message based on language
+            updateWelcomeMessage();
+        }
+
+        function setLanguage(lang) {
+            currentLanguage = lang;
+
+            // Update active language button
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-lang="${lang}"]`).classList.add('active');
+
+            // Update welcome message
+            updateWelcomeMessage();
+
+            // Update input placeholder
+            updateInputPlaceholder();
+
+            showNotification(`Language set to ${lang === 'en' ? 'English' : lang === 'hi' ? 'Hindi' : 'Mixed'}`, 'info');
+        }
+
+        function updateWelcomeMessage() {
+            const welcomeElement = document.getElementById('welcome-message');
+            const messages = {
+                'en': 'Hello! I\'m your AI assistant for government services. Ask me anything about UIDAI, MeiTY, DigitalMP, eDistrict, or MPOnline services.',
+                'hi': 'नमस्ते! मैं सरकारी सेवाओं के लिए आपका AI सहायक हूं। UIDAI, MeiTY, DigitalMP, eDistrict, या MPOnline सेवाओं के बारे में कुछ भी पूछें।',
+                'mixed': 'Hello! नमस्ते! I can help you in both English and Hindi. Ask me anything about government services.'
+            };
+            welcomeElement.textContent = messages[currentLanguage];
+        }
+
+        function updateInputPlaceholder() {
+            const inputElement = document.getElementById('chat-input');
+            const placeholders = {
+                'en': 'Type your question here...',
+                'hi': 'अपना प्रश्न यहाँ लिखें...',
+                'mixed': 'Type your question here / अपना प्रश्न यहाँ लिखें...'
+            };
+            inputElement.placeholder = placeholders[currentLanguage];
+        }
+
+        function handleChatKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            // Add user message to chat
+            addMessageToChat('user', message);
+
+            // Clear input
+            input.value = '';
+
+            // Show typing indicator
+            showTypingIndicator();
+
+            // Disable send button
+            document.getElementById('send-btn').disabled = true;
+
+            try {
+                // Call AI service
+                const response = await getAIResponse(message);
+
+                // Hide typing indicator
+                hideTypingIndicator();
+
+                // Add AI response to chat
+                addMessageToChat('bot', response);
+
+            } catch (error) {
+                hideTypingIndicator();
+                addMessageToChat('bot', 'Sorry, I encountered an error. Please try again.');
+                console.error('AI response error:', error);
+            }
+
+            // Re-enable send button
+            document.getElementById('send-btn').disabled = false;
+        }
+
+        function addMessageToChat(sender, message) {
+            const messagesContainer = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+
+            const avatar = sender === 'user' ? '👤' : '🤖';
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${avatar}</div>
+                <div>
+                    <div class="message-content">${message}</div>
+                    <div class="message-time">${time}</div>
+                </div>
+            `;
+
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // Store in chat history
+            chatHistory.push({ sender, message, timestamp: new Date().toISOString() });
+        }
+
+        function showTypingIndicator() {
+            document.getElementById('typing-indicator').style.display = 'flex';
+            const messagesContainer = document.getElementById('chat-messages');
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            document.getElementById('typing-indicator').style.display = 'none';
+        }
+
+        async function getAIResponse(userMessage) {
+            try {
+                // Call the self-service API
+                const response = await fetch('/api/self-service/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: userMessage,
+                        language: currentLanguage,
+                        chat_history: chatHistory.slice(-5) // Last 5 messages for context
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    return result.response;
+                } else {
+                    // Fallback to sample responses
+                    return getSampleAIResponse(userMessage);
+                }
+
+            } catch (error) {
+                console.error('AI service error:', error);
+                return getSampleAIResponse(userMessage);
+            }
+        }
+
+        function getSampleAIResponse(userMessage) {
+            const message = userMessage.toLowerCase();
+
+            // Hindi responses
+            if (currentLanguage === 'hi' || message.includes('आधार') || message.includes('भुगतान')) {
+                if (message.includes('आधार') || message.includes('aadhaar')) {
+                    return 'आधार कार्ड डाउनलोड करने के लिए: 1) UIDAI की आधिकारिक वेबसाइट पर जाएं 2) "Download Aadhaar" पर क्लिक करें 3) अपना आधार नंबर या VID डालें 4) OTP verify करें। क्या आपको और सहायता चाहिए?';
+                }
+                if (message.includes('भुगतान') || message.includes('payment')) {
+                    return 'भुगतान की समस्या के लिए: 1) अपना इंटरनेट कनेक्शन चेक करें 2) Browser cache clear करें 3) दूसरे payment method try करें। अगर फिर भी समस्या है तो helpdesk से संपर्क करें।';
+                }
+            }
+
+            // English responses
+            if (message.includes('aadhaar') || message.includes('download')) {
+                return 'To download your Aadhaar card: 1) Visit the official UIDAI website 2) Click on "Download Aadhaar" 3) Enter your Aadhaar number or VID 4) Verify OTP 5) Download your e-Aadhaar. The service is available 24/7.';
+            }
+
+            if (message.includes('payment') || message.includes('gateway')) {
+                return 'For payment gateway issues: 1) Check your internet connection 2) Clear browser cache and cookies 3) Try a different payment method 4) Ensure sufficient balance 5) Contact your bank if the issue persists. Our payment gateway supports all major banks and UPI.';
+            }
+
+            if (message.includes('certificate') || message.includes('edistrict')) {
+                return 'For certificate services through eDistrict: 1) Login to the eDistrict portal 2) Select the required certificate type 3) Fill the application form 4) Upload required documents 5) Pay the fees 6) Track your application status. Processing time is typically 7-15 days.';
+            }
+
+            if (message.includes('portal') || message.includes('login')) {
+                return 'For portal login issues: 1) Check your username and password 2) Clear browser cache 3) Try incognito/private mode 4) Reset password if needed 5) Contact support if problem persists. Make sure you\'re using the official government portal.';
+            }
+
+            if (message.includes('hello') || message.includes('hi') || message.includes('नमस्ते')) {
+                return currentLanguage === 'hi' ?
+                    'नमस्ते! मैं आपकी कैसे सहायता कर सकता हूं? आप UIDAI, MeiTY, DigitalMP, eDistrict, या MPOnline सेवाओं के बारे में पूछ सकते हैं।' :
+                    'Hello! How can I help you today? You can ask me about UIDAI, MeiTY, DigitalMP, eDistrict, or MPOnline services.';
+            }
+
+            // Default response
+            return currentLanguage === 'hi' ?
+                'मुझे खुशी होगी आपकी सहायता करने में। कृपया अपना प्रश्न और विस्तार से बताएं या quick actions का उपयोग करें।' :
+                'I\'d be happy to help you! Please provide more details about your question or use the quick actions for common queries.';
+        }
+
+        function askQuickQuestion(question) {
+            document.getElementById('chat-input').value = question;
+            sendMessage();
+        }
+
+        function exploreCategory(category) {
+            const questions = {
+                'uidai': 'Tell me about UIDAI services and Aadhaar card processes',
+                'payment': 'What are the common payment gateway issues and solutions?',
+                'portal': 'How do I access and use government digital portals?',
+                'certificate': 'What is the process for getting certificates through eDistrict?'
+            };
+
+            askQuickQuestion(questions[category]);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function () {
+            loadSystemStatus();
+            loadExamples();
+            startLogsAutoRefresh();
+            initializeTabs();
+        });
+
+        // Stop auto-refresh when page is hidden
+        document.addEventListener('visibilitychange', function () {
+            if (document.hidden) {
+                stopLogsAutoRefresh();
+            } else {
+                startLogsAutoRefresh();
+            }
+        });
+    </script>
+</body>
+
+</html>

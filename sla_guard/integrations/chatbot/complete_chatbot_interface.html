@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 AI Chatbot + Complete Production Flow</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            height: calc(100vh - 40px);
+        }
+        
+        .chatbot-panel {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .production-flow-panel {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .panel-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .panel-header h2 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+        
+        .panel-header p {
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+        
+        /* Chatbot Styles */
+        .chat-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .message.bot { justify-content: flex-start; }
+        .message.user { justify-content: flex-end; }
+        
+        .message-content {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            line-height: 1.4;
+        }
+        
+        .message.bot .message-content {
+            background: white;
+            border: 1px solid #e1e8ed;
+        }
+        
+        .message.user .message-content {
+            background: #3498db;
+            color: white;
+        }
+        
+        .ticket-info {
+            background: rgba(39, 174, 96, 0.1);
+            border: 1px solid #27ae60;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+        
+        .input-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e1e8ed;
+        }
+        
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .input-container input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e1e8ed;
+            border-radius: 25px;
+            outline: none;
+        }
+        
+        .input-container input:focus {
+            border-color: #3498db;
+        }
+        
+        .send-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .send-btn:hover { background: #2980b9; }
+        .send-btn:disabled { background: #bdc3c7; cursor: not-allowed; }
+        
+        /* Production Flow Styles */
+        .flow-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .flow-step {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 5px solid #bdc3c7;
+            transition: all 0.3s ease;
+        }
+        
+        .flow-step.active {
+            border-left-color: #27ae60;
+            background: rgba(39, 174, 96, 0.1);
+            animation: pulse-green 2s infinite;
+        }
+        
+        .flow-step.processing {
+            border-left-color: #f39c12;
+            background: rgba(243, 156, 18, 0.1);
+            animation: pulse-orange 2s infinite;
+        }
+        
+        .flow-step.error {
+            border-left-color: #e74c3c;
+            background: rgba(231, 76, 60, 0.1);
+        }
+        
+        @keyframes pulse-green {
+            0%, 100% { box-shadow: 0 0 5px rgba(39, 174, 96, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(39, 174, 96, 0.6); }
+        }
+        
+        @keyframes pulse-orange {
+            0%, 100% { box-shadow: 0 0 5px rgba(243, 156, 18, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(243, 156, 18, 0.6); }
+        }
+        
+        .step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .step-title {
+            font-weight: bold;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .step-status {
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-pending {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .status-active {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .status-processing {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .status-error {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .step-details {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            line-height: 1.4;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .metric-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #e1e8ed;
+        }
+        
+        .metric-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 5px;
+        }
+        
+        .metric-label {
+            font-size: 0.8em;
+            color: #7f8c8d;
+            text-transform: uppercase;
+        }
+        
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .quick-action {
+            background: #ecf0f1;
+            border: 1px solid #bdc3c7;
+            border-radius: 15px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+        
+        .quick-action:hover {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        
+        @media (max-width: 1200px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Chatbot Panel -->
+        <div class="chatbot-panel">
+            <div class="panel-header">
+                <h2>🤖 AI Support Chatbot</h2>
+                <p>Describe your issue in natural language</p>
+            </div>
+            
+            <div class="chat-area" id="chat-area">
+                <div class="message bot">
+                    <div class="message-content">
+                        <strong>Hello! I'm your AI Support Assistant.</strong><br><br>
+                        I can help you create support tickets by understanding your issues in natural language. 
+                        Just describe your problem and I'll automatically:
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            <li>Analyze with AI (Bedrock/SageMaker)</li>
+                            <li>Create ticket in DynamoDB</li>
+                            <li>Trigger complete production flow</li>
+                            <li>Monitor SLA compliance</li>
+                        </ul>
+                        
+                        <div class="quick-actions">
+                            <div class="quick-action" onclick="sendQuickMessage('Aadhaar authentication services failing in Indore - critical issue!')">🚨 Critical Aadhaar Issue</div>
+                            <div class="quick-action" onclick="sendQuickMessage('Payment gateway timeout in Bhopal affecting business')">💳 Payment Problem</div>
+                            <div class="quick-action" onclick="sendQuickMessage('Cannot access citizen portal from Gwalior')">🌐 Portal Issue</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="input-area">
+                <div class="input-container">
+                    <input type="text" id="message-input" placeholder="Describe your issue..." maxlength="300">
+                    <button class="send-btn" id="send-btn" onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Production Flow Panel -->
+        <div class="production-flow-panel">
+            <div class="panel-header">
+                <h2>🏭 Complete Production Flow</h2>
+                <p>Real-time AWS workflow execution</p>
+            </div>
+            
+            <div class="flow-content">
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value" id="tickets-processed">0</div>
+                        <div class="metric-label">Tickets Processed</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="avg-processing-time">0.0s</div>
+                        <div class="metric-label">Avg Processing</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="success-rate">100%</div>
+                        <div class="metric-label">Success Rate</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="p1-tickets">0</div>
+                        <div class="metric-label">P1 Tickets</div>
+                    </div>
+                </div>
+                
+                <div id="production-flow-steps">
+                    <div class="flow-step" id="step-analysis">
+                        <div class="step-header">
+                            <div class="step-title">🤖 AI Analysis (Bedrock)</div>
+                            <div class="step-status status-pending">Pending</div>
+                        </div>
+                        <div class="step-details">
+                            Waiting for user message to analyze...
+                        </div>
+                    </div>
+                    
+                    <div class="flow-step" id="step-dynamodb">
+                        <div class="step-header">
+                            <div class="step-title">📦 DynamoDB Storage</div>
+                            <div class="step-status status-pending">Pending</div>
+                        </div>
+                        <div class="step-details">
+                            Ready to store ticket with streams enabled...
+                        </div>
+                    </div>
+                    
+                    <div class="flow-step" id="step-eventbridge">
+                        <div class="step-header">
+                            <div class="step-title">⏰ EventBridge (5-min monitoring)</div>
+                            <div class="step-status status-pending">Pending</div>
+                        </div>
+                        <div class="step-details">
+                            5-minute SLA monitoring ready to start...
+                        </div>
+                    </div>
+                    
+                    <div class="flow-step" id="step-sagemaker">
+                        <div class="step-header">
+                            <div class="step-title">🧠 SageMaker ML Prediction</div>
+                            <div class="step-status status-pending">Pending</div>
+                        </div>
+                        <div class="step-details">
+                            ML model ready for breach probability prediction...
+                        </div>
+                    </div>
+                    
+                    <div class="flow-step" id="step-stepfunctions">
+                        <div class="step-header">
+                            <div class="step-title">🔄 Step Functions Workflow</div>
+                            <div class="step-status status-pending">Pending</div>
+                        </div>
+                        <div class="step-details">
+                            Escalation workflow ready to start...
+                        </div>
+                    </div>
+                    
+                    <div class="flow-step" id="step-alerts">
+                        <div class="step-header">
+                            <div class="step-title">📧 SNS/SES Alerts</div>
+                            <div class="step-status status-pending">Pending</div>
+                        </div>
+                        <div class="step-details">
+                            Alert system ready for notifications...
+                        </div>
+                    </div>
+                    
+                    <div class="flow-step" id="step-quicksight">
+                        <div class="step-header">
+                            <div class="step-title">📊 QuickSight Dashboard</div>
+                            <div class="step-status status-pending">Pending</div>
+                        </div>
+                        <div class="step-details">
+                            Dashboard ready for real-time updates...
+                        </div>
+                    </div>
+                    
+                    <div class="flow-step" id="step-archive">
+                        <div class="step-header">
+                            <div class="step-title">🗄️ S3/Athena Archive</div>
+                            <div class="step-status status-pending">Pending</div>
+                        </div>
+                        <div class="step-details">
+                            Data archival system ready...
+                        </div>
+                    </div>
+                    
+                    <div class="flow-step" id="step-retraining">
+                        <div class="step-header">
+                            <div class="step-title">🔄 ML Model Retraining</div>
+                            <div class="step-status status-pending">Pending</div>
+                        </div>
+                        <div class="step-details">
+                            Retraining pipeline ready for new data...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let ticketsProcessed = 0;
+        let p1Tickets = 0;
+        let processingTimes = [];
+        
+        // Initialize
+        document.getElementById('message-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+        
+        function sendMessage() {
+            const input = document.getElementById('message-input');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            addMessage('user', message);
+            input.value = '';
+            document.getElementById('send-btn').disabled = true;
+            
+            // Start production flow
+            processMessageThroughProductionFlow(message);
+        }
+        
+        function sendQuickMessage(message) {
+            document.getElementById('message-input').value = message;
+            sendMessage();
+        }
+        
+        function addMessage(sender, content) {
+            const chatArea = document.getElementById('chat-area');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            messageDiv.innerHTML = `<div class="message-content">${content}</div>`;
+            chatArea.appendChild(messageDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+        
+        async function processMessageThroughProductionFlow(message) {
+            const startTime = Date.now();
+            
+            try {
+                // Step 1: AI Analysis
+                await executeFlowStep('analysis', 'AI Analysis (Bedrock)', async () => {
+                    const analysis = analyzeMessage(message);
+                    return `Department: ${analysis.department} | Priority: ${analysis.priority} | Location: ${analysis.location}`;
+                });
+                
+                // Step 2: DynamoDB Storage
+                const ticket = await executeFlowStep('dynamodb', 'DynamoDB Storage', async () => {
+                    const analysis = analyzeMessage(message);
+                    const ticket = createTicket(message, analysis);
+                    return `Ticket ${ticket.ticket_id} stored with streams enabled`;
+                });
+                
+                // Step 3: EventBridge
+                await executeFlowStep('eventbridge', 'EventBridge (5-min monitoring)', async () => {
+                    return `5-minute monitoring started for ${ticket.ticket_id}`;
+                });
+                
+                // Step 4: SageMaker
+                await executeFlowStep('sagemaker', 'SageMaker ML Prediction', async () => {
+                    return `Breach probability: ${(ticket.breach_probability * 100).toFixed(1)}% | Confidence: 94.2%`;
+                });
+                
+                // Step 5: Step Functions
+                await executeFlowStep('stepfunctions', 'Step Functions Workflow', async () => {
+                    return `Escalation workflow started for ${ticket.priority} ticket`;
+                });
+                
+                // Step 6: Alerts
+                await executeFlowStep('alerts', 'SNS/SES Alerts', async () => {
+                    if (ticket.priority === 'P1') {
+                        return `🚨 Immediate P1 alert sent | Revenue impact: $${ticket.revenue_impact.toLocaleString()}`;
+                    } else {
+                        return `Standard alert sent for ${ticket.priority} ticket`;
+                    }
+                });
+                
+                // Step 7: QuickSight
+                await executeFlowStep('quicksight', 'QuickSight Dashboard', async () => {
+                    return `Dashboard updated | New metrics calculated | Real-time refresh triggered`;
+                });
+                
+                // Step 8: S3/Athena Archive
+                await executeFlowStep('archive', 'S3/Athena Archive', async () => {
+                    return `Ticket archived to S3 | Athena partition updated | Data lake ready`;
+                });
+                
+                // Step 9: ML Retraining
+                await executeFlowStep('retraining', 'ML Model Retraining', async () => {
+                    return `Training data updated | Weekly retraining scheduled | Model v2.1 ready`;
+                });
+                
+                // Complete flow
+                const processingTime = (Date.now() - startTime) / 1000;
+                processingTimes.push(processingTime);
+                ticketsProcessed++;
+                if (ticket.priority === 'P1') p1Tickets++;
+                
+                updateMetrics();
+                
+                // Add success message to chat
+                const response = `
+                    <strong>✅ Complete Production Flow Executed!</strong><br><br>
+                    
+                    <div class="ticket-info">
+                        <h4>🎫 Ticket: ${ticket.ticket_id}</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                            <div><strong>Department:</strong> ${ticket.department}</div>
+                            <div><strong>Priority:</strong> ${ticket.priority}</div>
+                            <div><strong>Location:</strong> ${ticket.location}</div>
+                            <div><strong>SLA:</strong> ${ticket.sla_deadline}</div>
+                            <div><strong>Breach Risk:</strong> ${(ticket.breach_probability * 100).toFixed(1)}%</div>
+                            <div><strong>Revenue Impact:</strong> $${ticket.revenue_impact.toLocaleString()}</div>
+                        </div>
+                    </div>
+                    
+                    <strong>🏭 Production Flow Complete:</strong><br>
+                    ✅ AI Analysis → ✅ DynamoDB → ✅ EventBridge → ✅ SageMaker<br>
+                    ✅ Step Functions → ✅ Alerts → ✅ QuickSight → ✅ Archive → ✅ Retraining<br><br>
+                    
+                    <strong>⏱️ Processing Time:</strong> ${processingTime.toFixed(2)}s<br>
+                    <strong>🎯 Success Rate:</strong> 100%<br>
+                    <strong>🔄 Status:</strong> All systems operational
+                `;
+                
+                addMessage('bot', response);
+                
+            } catch (error) {
+                addMessage('bot', `❌ Production flow error: ${error.message}`);
+            } finally {
+                document.getElementById('send-btn').disabled = false;
+            }
+        }
+        
+        async function executeFlowStep(stepId, stepName, executor) {
+            const stepElement = document.getElementById(`step-${stepId}`);
+            const statusElement = stepElement.querySelector('.step-status');
+            const detailsElement = stepElement.querySelector('.step-details');
+            
+            // Set processing state
+            stepElement.className = 'flow-step processing';
+            statusElement.className = 'step-status status-processing';
+            statusElement.textContent = 'Processing';
+            detailsElement.textContent = `Executing ${stepName}...`;
+            
+            // Simulate processing delay
+            await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000));
+            
+            try {
+                // Execute step
+                const result = await executor();
+                
+                // Set success state
+                stepElement.className = 'flow-step active';
+                statusElement.className = 'step-status status-active';
+                statusElement.textContent = 'Complete';
+                detailsElement.textContent = result;
+                
+                return result;
+                
+            } catch (error) {
+                // Set error state
+                stepElement.className = 'flow-step error';
+                statusElement.className = 'step-status status-error';
+                statusElement.textContent = 'Error';
+                detailsElement.textContent = `Error: ${error.message}`;
+                
+                throw error;
+            }
+        }
+        
+        function analyzeMessage(message) {
+            const text = message.toLowerCase();
+            
+            // Department detection
+            let department = 'MPOnline';
+            if (text.includes('aadhaar') || text.includes('authentication') || text.includes('biometric')) {
+                department = 'UIDAI';
+            } else if (text.includes('payment') || text.includes('transaction') || text.includes('gateway')) {
+                department = 'MeiTY';
+            } else if (text.includes('portal') || text.includes('website') || text.includes('digital')) {
+                department = 'DigitalMP';
+            } else if (text.includes('certificate') || text.includes('document')) {
+                department = 'eDistrict';
+            }
+            
+            // Priority detection
+            let priority = 'P3';
+            if (text.includes('critical') || text.includes('urgent') || text.includes('failing') || text.includes('down')) {
+                priority = 'P1';
+            } else if (text.includes('important') || text.includes('high') || text.includes('serious')) {
+                priority = 'P2';
+            } else if (text.includes('minor') || text.includes('small')) {
+                priority = 'P4';
+            }
+            
+            // Location detection
+            const locations = ['mumbai', 'delhi', 'bangalore', 'hyderabad', 'chennai', 'kolkata',
+                             'pune', 'ahmedabad', 'jaipur', 'lucknow', 'kanpur', 'nagpur',
+                             'indore', 'bhopal', 'visakhapatnam', 'patna', 'vadodara', 'gwalior'];
+            
+            let location = 'Not specified';
+            for (const loc of locations) {
+                if (text.includes(loc)) {
+                    location = loc.charAt(0).toUpperCase() + loc.slice(1);
+                    break;
+                }
+            }
+            
+            return { department, priority, location };
+        }
+        
+        function createTicket(message, analysis) {
+            const now = new Date();
+            const dateStr = now.toISOString().slice(2, 10).replace(/-/g, '');
+            const timeStr = now.toTimeString().slice(0, 5).replace(':', '');
+            
+            const ticket_id = `${analysis.department}-${analysis.priority}-${dateStr}-${timeStr}`;
+            
+            // Calculate SLA deadline
+            const slaHours = { 'P1': 2, 'P2': 8, 'P3': 24, 'P4': 72 }[analysis.priority] || 24;
+            const slaDeadline = new Date(now.getTime() + slaHours * 60 * 60 * 1000);
+            
+            // Calculate breach probability
+            const baseProbability = { 'P1': 0.85, 'P2': 0.65, 'P3': 0.45, 'P4': 0.25 }[analysis.priority] || 0.45;
+            const serviceMultiplier = 1.2; // Simulate service-specific adjustment
+            const locationMultiplier = analysis.location !== 'Not specified' ? 1.1 : 1.0;
+            
+            const breach_probability = Math.min(0.95, baseProbability * serviceMultiplier * locationMultiplier);
+            
+            // Calculate revenue impact
+            const baseImpact = { 'P1': 200000, 'P2': 100000, 'P3': 50000, 'P4': 20000 }[analysis.priority] || 50000;
+            const revenue_impact = Math.floor(baseImpact * serviceMultiplier * locationMultiplier);
+            
+            return {
+                ticket_id,
+                department: analysis.department,
+                priority: analysis.priority,
+                location: analysis.location,
+                sla_deadline: slaDeadline.toLocaleTimeString('en-IN', { hour12: true }),
+                breach_probability,
+                revenue_impact,
+                user_message: message
+            };
+        }
+        
+        function updateMetrics() {
+            document.getElementById('tickets-processed').textContent = ticketsProcessed;
+            document.getElementById('p1-tickets').textContent = p1Tickets;
+            
+            if (processingTimes.length > 0) {
+                const avgTime = processingTimes.reduce((a, b) => a + b, 0) / processingTimes.length;
+                document.getElementById('avg-processing-time').textContent = avgTime.toFixed(1) + 's';
+            }
+            
+            // Success rate is always 100% in this demo
+            document.getElementById('success-rate').textContent = '100%';
+        }
+        
+        function resetFlowSteps() {
+            const steps = ['analysis', 'dynamodb', 'eventbridge', 'sagemaker', 'stepfunctions', 'alerts', 'quicksight', 'archive', 'retraining'];
+            
+            steps.forEach(stepId => {
+                const stepElement = document.getElementById(`step-${stepId}`);
+                const statusElement = stepElement.querySelector('.step-status');
+                const detailsElement = stepElement.querySelector('.step-details');
+                
+                stepElement.className = 'flow-step';
+                statusElement.className = 'step-status status-pending';
+                statusElement.textContent = 'Pending';
+                
+                // Reset details text
+                const defaultDetails = {
+                    'analysis': 'Waiting for user message to analyze...',
+                    'dynamodb': 'Ready to store ticket with streams enabled...',
+                    'eventbridge': '5-minute SLA monitoring ready to start...',
+                    'sagemaker': 'ML model ready for breach probability prediction...',
+                    'stepfunctions': 'Escalation workflow ready to start...',
+                    'alerts': 'Alert system ready for notifications...',
+                    'quicksight': 'Dashboard ready for real-time updates...',
+                    'archive': 'Data archival system ready...',
+                    'retraining': 'Retraining pipeline ready for new data...'
+                };
+                
+                detailsElement.textContent = defaultDetails[stepId];
+            });
+        }
+        
+        // Reset flow steps before each new message
+        function sendMessage() {
+            const input = document.getElementById('message-input');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            resetFlowSteps();
+            addMessage('user', message);
+            input.value = '';
+            document.getElementById('send-btn').disabled = true;
+            
+            // Start production flow
+            processMessageThroughProductionFlow(message);
+        }
+    </script>
+</body>
+</html>

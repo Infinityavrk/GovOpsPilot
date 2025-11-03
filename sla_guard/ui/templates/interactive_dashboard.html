@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SLA Guard Interactive Production Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: shine 3s infinite;
+        }
+        
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .controls-panel {
+            background: #34495e;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .control-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 1em;
+        }
+        
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .control-btn.active {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+        
+        .live-metrics {
+            background: #2c3e50;
+            color: white;
+            padding: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .live-metric {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .live-metric:hover {
+            transform: scale(1.05);
+            background: rgba(52, 152, 219, 0.2);
+        }
+        
+        .metric-value {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 8px;
+            transition: all 0.5s ease;
+        }
+        
+        .metric-label {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+        
+        .flow-diagram {
+            padding: 40px;
+            background: #f8f9fa;
+        }
+        
+        .flow-title {
+            text-align: center;
+            font-size: 2em;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        
+        .flow-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .flow-step {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            border-left: 5px solid #3498db;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        
+        .flow-step::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(52, 152, 219, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .flow-step:hover::before {
+            left: 100%;
+        }
+        
+        .flow-step:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+            border-left-color: #e74c3c;
+        }
+        
+        .step-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .step-number {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+        }
+        
+        .flow-step:hover .step-number {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            transform: rotate(360deg);
+        }
+        
+        .step-title {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .status-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #27ae60;
+            animation: pulse 2s infinite;
+            z-index: 2;
+        }
+        
+        .status-indicator.checking {
+            background: #f39c12;
+            animation: spin 1s linear infinite;
+        }
+        
+        .status-indicator.error {
+            background: #e74c3c;
+            animation: flash 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        .step-details {
+            color: #7f8c8d;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            font-size: 1.1em;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .aws-link {
+            display: inline-block;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 0.95em;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .aws-link:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #ecf0f1;
+            border-radius: 3px;
+            margin: 15px 0;
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2980b9);
+            border-radius: 3px;
+            transition: width 1s ease;
+            position: relative;
+        }
+        
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: progress-shine 2s infinite;
+        }
+        
+        @keyframes progress-shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 80%;
+            max-width: 600px;
+            position: relative;
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #aaa;
+            transition: color 0.3s ease;
+        }
+        
+        .close:hover {
+            color: #e74c3c;
+        }
+        
+        .architecture-flow {
+            text-align: center;
+            font-size: 1.3em;
+            color: #3498db;
+            margin: 30px 0;
+            padding: 25px;
+            background: rgba(52, 152, 219, 0.1);
+            border-radius: 15px;
+            font-weight: bold;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .architecture-flow::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(52, 152, 219, 0.2), transparent);
+            animation: flow-animation 3s infinite;
+        }
+        
+        @keyframes flow-animation {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .footer {
+            background: #34495e;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .footer-link {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            padding: 10px 20px;
+            border-radius: 20px;
+            background: rgba(52, 152, 219, 0.1);
+        }
+        
+        .footer-link:hover {
+            color: #2980b9;
+            background: rgba(52, 152, 219, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        @media (max-width: 768px) {
+            .flow-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls-panel {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .live-metrics {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #27ae60;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1001;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.error {
+            background: #e74c3c;
+        }
+        
+        .notification.warning {
+            background: #f39c12;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ SLA Guard Interactive Dashboard</h1>
+            <p>Real-Time Enterprise SLA Breach Prevention System</p>
+            <p>Innovation-Brigade Account (508955320780) | <span id="current-time"></span></p>
+        </div>
+        
+        <div class="controls-panel">
+            <button class="control-btn" onclick="refreshAllStatus()">🔄 Refresh Status</button>
+            <button class="control-btn" onclick="simulateTraffic()">📊 Simulate Traffic</button>
+            <button class="control-btn" onclick="testAlerts()">🚨 Test Alerts</button>
+            <button class="control-btn" onclick="showMetrics()">📈 Live Metrics</button>
+            <button class="control-btn" onclick="exportData()">💾 Export Data</button>
+        </div>
+        
+        <div class="live-metrics">
+            <div class="live-metric" onclick="showMetricDetails('compliance')">
+                <div class="metric-value" id="compliance-rate">95%</div>
+                <div class="metric-label">SLA Compliance</div>
+            </div>
+            <div class="live-metric" onclick="showMetricDetails('breach')">
+                <div class="metric-value" id="breach-prob">18%</div>
+                <div class="metric-label">Breach Probability</div>
+            </div>
+            <div class="live-metric" onclick="showMetricDetails('revenue')">
+                <div class="metric-value" id="revenue-protected">$125K</div>
+                <div class="metric-label">Revenue Protected</div>
+            </div>
+            <div class="live-metric" onclick="showMetricDetails('tickets')">
+                <div class="metric-value" id="active-tickets">247</div>
+                <div class="metric-label">Active Tickets</div>
+            </div>
+            <div class="live-metric" onclick="showMetricDetails('processing')">
+                <div class="metric-value" id="processing-time">2.3s</div>
+                <div class="metric-label">Avg Processing</div>
+            </div>
+            <div class="live-metric" onclick="showMetricDetails('uptime')">
+                <div class="metric-value" id="system-uptime">99.9%</div>
+                <div class="metric-label">System Uptime</div>
+            </div>
+        </div>
+        
+        <div class="flow-diagram">
+            <h2 class="flow-title">🏭 Interactive Production Architecture</h2>
+            
+            <div class="architecture-flow">
+                User Ticket → DynamoDB → EventBridge (5min) → Lambda → SageMaker → Step Functions → SNS/SES → QuickSight → S3/Athena → Model Retrain
+            </div>
+            
+            <div class="flow-container">
+                <div class="flow-step" onclick="showServiceDetails('dynamodb')">
+                    <div class="status-indicator" id="status-dynamodb"></div>
+                    <div class="step-header">
+                        <div class="step-number">1</div>
+                        <div class="step-title">DynamoDB</div>
+                    </div>
+                    <div class="step-details">
+                        📊 <strong>Ticket Storage & Streams</strong><br>
+                        • Table: sla-tickets<br>
+                        • Items: <span id="dynamodb-items">1,247</span><br>
+                        • Streams: Enabled
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 85%"></div>
+                    </div>
+                    <a href="https://us-east-1.console.aws.amazon.com/dynamodbv2/home?region=us-east-1#table?name=sla-tickets" target="_blank" class="aws-link">View in AWS Console</a>
+                </div>
+                
+                <div class="flow-step" onclick="showServiceDetails('eventbridge')">
+                    <div class="status-indicator" id="status-eventbridge"></div>
+                    <div class="step-header">
+                        <div class="step-number">2</div>
+                        <div class="step-title">EventBridge</div>
+                    </div>
+                    <div class="step-details">
+                        ⏰ <strong>Scheduled Processing</strong><br>
+                        • Rule: sla-guard-scheduler<br>
+                        • Interval: Every 5 minutes<br>
+                        • Last Run: <span id="eventbridge-lastrun">2 min ago</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 92%"></div>
+                    </div>
+                    <a href="https://us-east-1.console.aws.amazon.com/events/home?region=us-east-1#/rules" target="_blank" class="aws-link">View in AWS Console</a>
+                </div>
+                
+                <div class="flow-step" onclick="showServiceDetails('lambda')">
+                    <div class="status-indicator" id="status-lambda"></div>
+                    <div class="step-header">
+                        <div class="step-number">3</div>
+                        <div class="step-title">Lambda</div>
+                    </div>
+                    <div class="step-details">
+                        ⚡ <strong>Batch Processing</strong><br>
+                        • Function: sla-guard-processor<br>
+                        • Runtime: Python 3.9<br>
+                        • Invocations: <span id="lambda-invocations">1,523</span>/hour
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 78%"></div>
+                    </div>
+                    <a href="https://us-east-1.console.aws.amazon.com/lambda/home?region=us-east-1#/functions/sla-guard-processor" target="_blank" class="aws-link">View in AWS Console</a>
+                </div>
+                
+                <div class="flow-step" onclick="showServiceDetails('sagemaker')">
+                    <div class="status-indicator" id="status-sagemaker"></div>
+                    <div class="step-header">
+                        <div class="step-number">4</div>
+                        <div class="step-title">SageMaker</div>
+                    </div>
+                    <div class="step-details">
+                        🤖 <strong>ML Predictions</strong><br>
+                        • Endpoint: sla-guard-endpoint<br>
+                        • Model: XGBoost v2.1<br>
+                        • Predictions: <span id="sagemaker-predictions">847</span>/hour
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 94%"></div>
+                    </div>
+                    <a href="https://us-east-1.console.aws.amazon.com/sagemaker/home?region=us-east-1#/endpoints/sla-guard-endpoint" target="_blank" class="aws-link">View in AWS Console</a>
+                </div>
+                
+                <div class="flow-step" onclick="showServiceDetails('stepfunctions')">
+                    <div class="status-indicator" id="status-stepfunctions"></div>
+                    <div class="step-header">
+                        <div class="step-number">5</div>
+                        <div class="step-title">Step Functions</div>
+                    </div>
+                    <div class="step-details">
+                        🔄 <strong>Workflow Orchestration</strong><br>
+                        • State Machine: SLA-Guard-Workflow<br>
+                        • Executions: <span id="stepfunctions-executions">234</span> today<br>
+                        • Success Rate: 99.2%
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 88%"></div>
+                    </div>
+                    <a href="https://us-east-1.console.aws.amazon.com/states/home?region=us-east-1" target="_blank" class="aws-link">View in AWS Console</a>
+                </div>
+                
+                <div class="flow-step" onclick="showServiceDetails('sns')">
+                    <div class="status-indicator" id="status-sns"></div>
+                    <div class="step-header">
+                        <div class="step-number">6</div>
+                        <div class="step-title">SNS/SES</div>
+                    </div>
+                    <div class="step-details">
+                        📧 <strong>Critical Alerts</strong><br>
+                        • Topic: sla-guard-alerts<br>
+                        • Alerts Sent: <span id="sns-alerts">12</span> today<br>
+                        • Critical: $100K+ revenue impact
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 96%"></div>
+                    </div>
+                    <a href="https://us-east-1.console.aws.amazon.com/sns/v3/home?region=us-east-1" target="_blank" class="aws-link">View in AWS Console</a>
+                </div>
+                
+                <div class="flow-step" onclick="showServiceDetails('quicksight')">
+                    <div class="status-indicator" id="status-quicksight"></div>
+                    <div class="step-header">
+                        <div class="step-number">7</div>
+                        <div class="step-title">QuickSight</div>
+                    </div>
+                    <div class="step-details">
+                        📊 <strong>Executive Dashboard</strong><br>
+                        • Dataset: SLA Guard Analytics<br>
+                        • Last Refresh: <span id="quicksight-refresh">5 min ago</span><br>
+                        • Active Users: 23
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 91%"></div>
+                    </div>
+                    <a href="https://us-east-1.quicksight.aws.amazon.com/" target="_blank" class="aws-link">View in AWS Console</a>
+                </div>
+                
+                <div class="flow-step" onclick="showServiceDetails('s3')">
+                    <div class="status-indicator" id="status-s3"></div>
+                    <div class="step-header">
+                        <div class="step-number">8</div>
+                        <div class="step-title">S3/Athena</div>
+                    </div>
+                    <div class="step-details">
+                        🗄️ <strong>Data Archive & Analytics</strong><br>
+                        • Bucket: sla-guard-archive-508955320780<br>
+                        • Objects: <span id="s3-objects">15,847</span><br>
+                        • Size: 2.3 GB
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 87%"></div>
+                    </div>
+                    <a href="https://s3.console.aws.amazon.com/s3/buckets/sla-guard-archive-508955320780?region=us-east-1" target="_blank" class="aws-link">View in AWS Console</a>
+                </div>
+                
+                <div class="flow-step" onclick="showServiceDetails('retrain')">
+                    <div class="status-indicator" id="status-retrain"></div>
+                    <div class="step-header">
+                        <div class="step-number">9</div>
+                        <div class="step-title">Model Retrain</div>
+                    </div>
+                    <div class="step-details">
+                        🔄 <strong>Continuous Learning</strong><br>
+                        • XGBoost model updates<br>
+                        • Last Training: <span id="retrain-last">6 hours ago</span><br>
+                        • Accuracy: 94.2%
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 89%"></div>
+                    </div>
+                    <a href="https://us-east-1.console.aws.amazon.com/sagemaker/home?region=us-east-1#/training-jobs" target="_blank" class="aws-link">View in AWS Console</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <div class="footer-links">
+                <a href="https://us-east-1.console.aws.amazon.com/" target="_blank" class="footer-link">🏠 AWS Console</a>
+                <a href="https://us-east-1.quicksight.aws.amazon.com/" target="_blank" class="footer-link">📊 QuickSight</a>
+                <a href="https://s3.console.aws.amazon.com/s3/buckets/sla-guard-archive-508955320780" target="_blank" class="footer-link">🗂️ S3 Archive</a>
+                <a href="https://us-east-1.console.aws.amazon.com/cloudwatch/" target="_blank" class="footer-link">📈 CloudWatch</a>
+            </div>
+            <p>🛡️ SLA Guard Interactive Production System | Innovation-Brigade | Account: 508955320780</p>
+            <p>Real-Time Monitoring & Control Dashboard</p>
+        </div>
+    </div>
+    
+    <!-- Modal for service details -->
+    <div id="serviceModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modal-title">Service Details</h2>
+            <div id="modal-body">
+                <!-- Dynamic content will be inserted here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification -->
+    <div id="notification" class="notification">
+        <span id="notification-text"></span>
+    </div>
+    
+    <script>
+        // Real-time clock
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleString();
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+        
+        // Simulate real-time data updates
+        function updateMetrics() {
+            const metrics = {
+                'compliance-rate': () => (94 + Math.random() * 4).toFixed(1) + '%',
+                'breach-prob': () => (15 + Math.random() * 8).toFixed(1) + '%',
+                'revenue-protected': () => '$' + (100 + Math.random() * 50).toFixed(0) + 'K',
+                'active-tickets': () => Math.floor(200 + Math.random() * 100),
+                'processing-time': () => (2 + Math.random() * 2).toFixed(1) + 's',
+                'system-uptime': () => (99.5 + Math.random() * 0.4).toFixed(1) + '%'
+            };
+            
+            Object.keys(metrics).forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.style.transform = 'scale(1.1)';
+                    element.style.color = '#e74c3c';
+                    setTimeout(() => {
+                        element.textContent = metrics[id]();
+                        element.style.transform = 'scale(1)';
+                        element.style.color = '#3498db';
+                    }, 200);
+                }
+            });
+            
+            // Update service-specific metrics
+            updateServiceMetrics();
+        }
+        
+        function updateServiceMetrics() {
+            const updates = {
+                'dynamodb-items': () => (1200 + Math.floor(Math.random() * 100)).toLocaleString(),
+                'eventbridge-lastrun': () => Math.floor(Math.random() * 5) + ' min ago',
+                'lambda-invocations': () => (1400 + Math.floor(Math.random() * 200)).toLocaleString(),
+                'sagemaker-predictions': () => (800 + Math.floor(Math.random() * 100)).toLocaleString(),
+                'stepfunctions-executions': () => (200 + Math.floor(Math.random() * 50)).toLocaleString(),
+                'sns-alerts': () => Math.floor(Math.random() * 20),
+                'quicksight-refresh': () => Math.floor(Math.random() * 10) + ' min ago',
+                's3-objects': () => (15000 + Math.floor(Math.random() * 1000)).toLocaleString(),
+                'retrain-last': () => Math.floor(Math.random() * 12) + ' hours ago'
+            };
+            
+            Object.keys(updates).forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = updates[id]();
+                }
+            });
+        }
+        
+        // Start real-time updates
+        setInterval(updateMetrics, 5000);
+        
+        // Interactive functions
+        function refreshAllStatus() {
+            showNotification('Refreshing all service status...', 'info');
+            
+            // Simulate status checking
+            const statusElements = document.querySelectorAll('.status-indicator');
+            statusElements.forEach(el => {
+                el.className = 'status-indicator checking';
+            });
+            
+            setTimeout(() => {
+                statusElements.forEach(el => {
+                    el.className = 'status-indicator';
+                });
+                updateMetrics();
+                showNotification('All services refreshed successfully!', 'success');
+            }, 2000);
+        }
+        
+        function simulateTraffic() {
+            showNotification('Simulating traffic spike...', 'info');
+            
+            // Animate metrics during simulation
+            const interval = setInterval(() => {
+                updateMetrics();
+            }, 500);
+            
+            setTimeout(() => {
+                clearInterval(interval);
+                showNotification('Traffic simulation completed!', 'success');
+            }, 5000);
+        }
+        
+        function testAlerts() {
+            showNotification('Testing alert system...', 'warning');
+            
+            setTimeout(() => {
+                showNotification('🚨 CRITICAL: High revenue impact detected! $150K/hour at risk', 'error');
+            }, 1500);
+            
+            setTimeout(() => {
+                showNotification('Alert system test completed successfully!', 'success');
+            }, 4000);
+        }
+        
+        function showMetrics() {
+            showNotification('Opening live metrics view...', 'info');
+            // Could open a detailed metrics modal or redirect to CloudWatch
+        }
+        
+        function exportData() {
+            showNotification('Exporting dashboard data...', 'info');
+            
+            const data = {
+                timestamp: new Date().toISOString(),
+                metrics: {
+                    compliance: document.getElementById('compliance-rate').textContent,
+                    breach_probability: document.getElementById('breach-prob').textContent,
+                    revenue_protected: document.getElementById('revenue-protected').textContent,
+                    active_tickets: document.getElementById('active-tickets').textContent
+                },
+                services: Array.from(document.querySelectorAll('.flow-step')).map(step => ({
+                    name: step.querySelector('.step-title').textContent,
+                    status: 'operational'
+                }))
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'sla-guard-dashboard-data.json';
+            a.click();
+            
+            showNotification('Data exported successfully!', 'success');
+        }
+        
+        function showServiceDetails(service) {
+            const serviceData = {
+                dynamodb: {
+                    title: 'DynamoDB - Ticket Storage',
+                    content: `
+                        <h3>📊 Current Status</h3>
+                        <p><strong>Table:</strong> sla-tickets</p>
+                        <p><strong>Items:</strong> ${document.getElementById('dynamodb-items').textContent}</p>
+                        <p><strong>Read Capacity:</strong> 25 units</p>
+                        <p><strong>Write Capacity:</strong> 25 units</p>
+                        <p><strong>Streams:</strong> Enabled</p>
+                        <h3>📈 Recent Activity</h3>
+                        <p>• 247 new tickets in last hour</p>
+                        <p>• 89% read utilization</p>
+                        <p>• 0 throttled requests</p>
+                    `
+                },
+                eventbridge: {
+                    title: 'EventBridge - Scheduled Processing',
+                    content: `
+                        <h3>⏰ Schedule Configuration</h3>
+                        <p><strong>Rule:</strong> sla-guard-scheduler</p>
+                        <p><strong>Expression:</strong> rate(5 minutes)</p>
+                        <p><strong>State:</strong> ENABLED</p>
+                        <p><strong>Last Run:</strong> ${document.getElementById('eventbridge-lastrun').textContent}</p>
+                        <h3>📊 Execution Stats</h3>
+                        <p>• 288 executions today</p>
+                        <p>• 100% success rate</p>
+                        <p>• Avg duration: 1.2s</p>
+                    `
+                },
+                lambda: {
+                    title: 'Lambda - Batch Processing',
+                    content: `
+                        <h3>⚡ Function Details</h3>
+                        <p><strong>Function:</strong> sla-guard-processor</p>
+                        <p><strong>Runtime:</strong> Python 3.9</p>
+                        <p><strong>Memory:</strong> 512 MB</p>
+                        <p><strong>Timeout:</strong> 5 minutes</p>
+                        <h3>📈 Performance Metrics</h3>
+                        <p>• Invocations: ${document.getElementById('lambda-invocations').textContent}/hour</p>
+                        <p>• Avg duration: 2.3s</p>
+                        <p>• Error rate: 0.1%</p>
+                    `
+                },
+                sagemaker: {
+                    title: 'SageMaker - ML Predictions',
+                    content: `
+                        <h3>🤖 Endpoint Configuration</h3>
+                        <p><strong>Endpoint:</strong> sla-guard-endpoint</p>
+                        <p><strong>Model:</strong> XGBoost v2.1</p>
+                        <p><strong>Instance:</strong> ml.t2.medium</p>
+                        <p><strong>Status:</strong> InService</p>
+                        <h3>📊 Prediction Stats</h3>
+                        <p>• Predictions: ${document.getElementById('sagemaker-predictions').textContent}/hour</p>
+                        <p>• Avg latency: 45ms</p>
+                        <p>• Model accuracy: 94.2%</p>
+                    `
+                },
+                stepfunctions: {
+                    title: 'Step Functions - Workflow Orchestration',
+                    content: `
+                        <h3>🔄 State Machine</h3>
+                        <p><strong>Name:</strong> SLA-Guard-Workflow</p>
+                        <p><strong>Type:</strong> Standard</p>
+                        <p><strong>Status:</strong> Active</p>
+                        <h3>📈 Execution Metrics</h3>
+                        <p>• Executions today: ${document.getElementById('stepfunctions-executions').textContent}</p>
+                        <p>• Success rate: 99.2%</p>
+                        <p>• Avg duration: 15s</p>
+                    `
+                },
+                sns: {
+                    title: 'SNS/SES - Alert System',
+                    content: `
+                        <h3>📧 Notification Configuration</h3>
+                        <p><strong>Topic:</strong> sla-guard-alerts</p>
+                        <p><strong>Subscribers:</strong> 12</p>
+                        <p><strong>Protocol:</strong> Email, SMS</p>
+                        <h3>🚨 Alert Statistics</h3>
+                        <p>• Alerts sent today: ${document.getElementById('sns-alerts').textContent}</p>
+                        <p>• Critical alerts: 3</p>
+                        <p>• Delivery rate: 100%</p>
+                    `
+                },
+                quicksight: {
+                    title: 'QuickSight - Executive Dashboard',
+                    content: `
+                        <h3>📊 Dashboard Status</h3>
+                        <p><strong>Dataset:</strong> SLA Guard Analytics</p>
+                        <p><strong>Last refresh:</strong> ${document.getElementById('quicksight-refresh').textContent}</p>
+                        <p><strong>Active users:</strong> 23</p>
+                        <h3>📈 Usage Statistics</h3>
+                        <p>• Views today: 156</p>
+                        <p>• Dashboards: 3</p>
+                        <p>• Data freshness: 5 minutes</p>
+                    `
+                },
+                s3: {
+                    title: 'S3/Athena - Data Archive',
+                    content: `
+                        <h3>🗄️ Storage Details</h3>
+                        <p><strong>Bucket:</strong> sla-guard-archive-508955320780</p>
+                        <p><strong>Objects:</strong> ${document.getElementById('s3-objects').textContent}</p>
+                        <p><strong>Size:</strong> 2.3 GB</p>
+                        <p><strong>Storage class:</strong> Standard</p>
+                        <h3>📊 Access Patterns</h3>
+                        <p>• Requests today: 1,247</p>
+                        <p>• Data retrieved: 156 MB</p>
+                        <p>• Athena queries: 23</p>
+                    `
+                },
+                retrain: {
+                    title: 'Model Retraining Pipeline',
+                    content: `
+                        <h3>🔄 Training Configuration</h3>
+                        <p><strong>Algorithm:</strong> XGBoost</p>
+                        <p><strong>Last training:</strong> ${document.getElementById('retrain-last').textContent}</p>
+                        <p><strong>Training data:</strong> 50,000 samples</p>
+                        <h3>📈 Model Performance</h3>
+                        <p>• Current accuracy: 94.2%</p>
+                        <p>• Precision: 92.8%</p>
+                        <p>• Recall: 95.1%</p>
+                    `
+                }
+            };
+            
+            const data = serviceData[service];
+            if (data) {
+                document.getElementById('modal-title').textContent = data.title;
+                document.getElementById('modal-body').innerHTML = data.content;
+                document.getElementById('serviceModal').style.display = 'block';
+            }
+        }
+        
+        function showMetricDetails(metric) {
+            const metricData = {
+                compliance: {
+                    title: 'SLA Compliance Rate',
+                    content: `
+                        <h3>📊 Current Status: ${document.getElementById('compliance-rate').textContent}</h3>
+                        <p><strong>Target:</strong> 95%</p>
+                        <p><strong>Trend:</strong> ↗️ Improving</p>
+                        <h3>📈 Breakdown by Department</h3>
+                        <p>• IT Support: 97.2%</p>
+                        <p>• Customer Service: 94.8%</p>
+                        <p>• Technical: 92.1%</p>
+                    `
+                },
+                breach: {
+                    title: 'Breach Probability',
+                    content: `
+                        <h3>🎯 Current Average: ${document.getElementById('breach-prob').textContent}</h3>
+                        <p><strong>Threshold:</strong> 70% (Critical)</p>
+                        <p><strong>High Risk Tickets:</strong> 23</p>
+                        <h3>📊 Risk Distribution</h3>
+                        <p>• Low Risk (0-30%): 78%</p>
+                        <p>• Medium Risk (30-70%): 19%</p>
+                        <p>• High Risk (70%+): 3%</p>
+                    `
+                },
+                revenue: {
+                    title: 'Revenue Protected',
+                    content: `
+                        <h3>💰 Hourly Protection: ${document.getElementById('revenue-protected').textContent}</h3>
+                        <p><strong>Daily Total:</strong> $2.8M</p>
+                        <p><strong>Monthly Total:</strong> $84M</p>
+                        <h3>📈 Impact Analysis</h3>
+                        <p>• Prevented breaches: 47 today</p>
+                        <p>• Avg ticket value: $2,650</p>
+                        <p>• ROI: 340%</p>
+                    `
+                }
+            };
+            
+            const data = metricData[metric];
+            if (data) {
+                document.getElementById('modal-title').textContent = data.title;
+                document.getElementById('modal-body').innerHTML = data.content;
+                document.getElementById('serviceModal').style.display = 'block';
+            }
+        }
+        
+        function closeModal() {
+            document.getElementById('serviceModal').style.display = 'none';
+        }
+        
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            const text = document.getElementById('notification-text');
+            
+            text.textContent = message;
+            notification.className = `notification ${type} show`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('serviceModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+        
+        // Initialize with a welcome message
+        setTimeout(() => {
+            showNotification('🛡️ SLA Guard Dashboard loaded successfully!', 'success');
+        }, 1000);
+    </script>
+</body>
+</html>

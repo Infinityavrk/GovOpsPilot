@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SLA Guard Live Ticket Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .live-controls {
+            background: #34495e;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .control-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 1em;
+        }
+        
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .control-btn.danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+        
+        .control-btn.success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+        }
+        
+        .ticket-creation-panel {
+            background: #2c3e50;
+            color: white;
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        .create-ticket-form {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        .form-group textarea {
+            height: 80px;
+            resize: vertical;
+        }
+        
+        .create-btn {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1em;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        .create-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+        }
+        
+        .live-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: scale(1.05);
+            background: rgba(52, 152, 219, 0.2);
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .flow-visualization {
+            padding: 40px;
+            background: #f8f9fa;
+        }
+        
+        .flow-title {
+            text-align: center;
+            font-size: 2em;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        
+        .flow-pipeline {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            overflow-x: auto;
+            padding: 20px 0;
+        }
+        
+        .pipeline-step {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            min-width: 150px;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .pipeline-step:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+        
+        .pipeline-step.active {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            animation: pulse 2s infinite;
+        }
+        
+        .pipeline-step.processing {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            animation: spin 2s linear infinite;
+        }
+        
+        .pipeline-step.completed {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+        }
+        
+        .pipeline-arrow {
+            font-size: 2em;
+            color: #3498db;
+            margin: 0 10px;
+        }
+        
+        .step-number {
+            background: rgba(255, 255, 255, 0.2);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-weight: bold;
+        }
+        
+        .step-name {
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .step-count {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        .pipeline-step.active .step-count,
+        .pipeline-step.processing .step-count,
+        .pipeline-step.completed .step-count {
+            color: white;
+        }
+        
+        .live-tickets {
+            background: white;
+            margin: 20px;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tickets-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .tickets-title {
+            font-size: 1.8em;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+        
+        .ticket-filters {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #3498db;
+            background: transparent;
+            color: #3498db;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-btn.active {
+            background: #3498db;
+            color: white;
+        }
+        
+        .tickets-container {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .ticket-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 5px solid #3498db;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .ticket-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .ticket-item.high-risk {
+            border-left-color: #e74c3c;
+            background: linear-gradient(90deg, rgba(231, 76, 60, 0.1), #f8f9fa);
+        }
+        
+        .ticket-item.medium-risk {
+            border-left-color: #f39c12;
+            background: linear-gradient(90deg, rgba(243, 156, 18, 0.1), #f8f9fa);
+        }
+        
+        .ticket-item.processing {
+            border-left-color: #9b59b6;
+            background: linear-gradient(90deg, rgba(155, 89, 182, 0.1), #f8f9fa);
+            animation: processing-glow 2s infinite;
+        }
+        
+        @keyframes processing-glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(155, 89, 182, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(155, 89, 182, 0.6); }
+        }
+        
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .ticket-id {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+        
+        .ticket-status {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-new {
+            background: #3498db;
+            color: white;
+        }
+        
+        .status-processing {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .status-predicted {
+            background: #9b59b6;
+            color: white;
+        }
+        
+        .status-alerted {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .status-resolved {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .ticket-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .ticket-detail {
+            text-align: center;
+        }
+        
+        .detail-label {
+            font-size: 0.8em;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+        
+        .detail-value {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .breach-probability {
+            font-size: 1.2em;
+        }
+        
+        .high-risk .breach-probability {
+            color: #e74c3c;
+        }
+        
+        .medium-risk .breach-probability {
+            color: #f39c12;
+        }
+        
+        .ticket-progress {
+            margin-top: 15px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #ecf0f1;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2980b9);
+            border-radius: 4px;
+            transition: width 1s ease;
+            position: relative;
+        }
+        
+        .progress-fill.high-risk {
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
+        }
+        
+        .progress-fill.medium-risk {
+            background: linear-gradient(90deg, #f39c12, #e67e22);
+        }
+        
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: progress-shine 2s infinite;
+        }
+        
+        @keyframes progress-shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .floating-ticket {
+            position: fixed;
+            background: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            z-index: 1000;
+            animation: float-across 5s linear;
+            pointer-events: none;
+        }
+        
+        @keyframes float-across {
+            0% { 
+                left: -200px; 
+                top: 50%; 
+                opacity: 0; 
+            }
+            10% { 
+                opacity: 1; 
+            }
+            90% { 
+                opacity: 1; 
+            }
+            100% { 
+                left: 100vw; 
+                top: 50%; 
+                opacity: 0; 
+            }
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #27ae60;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1001;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.error {
+            background: #e74c3c;
+        }
+        
+        .notification.warning {
+            background: #f39c12;
+        }
+        
+        @media (max-width: 768px) {
+            .ticket-creation-panel {
+                grid-template-columns: 1fr;
+            }
+            
+            .flow-pipeline {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .pipeline-arrow {
+                transform: rotate(90deg);
+            }
+            
+            .live-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ SLA Guard Live Ticket Dashboard</h1>
+            <p>Real-Time Ticket Creation & Flow Visualization</p>
+            <p>Innovation-Brigade Account (508955320780) | <span id="current-time"></span></p>
+        </div>
+        
+        <div class="live-controls">
+            <button class="control-btn success" onclick="createRandomTicket()">🎫 Create Random Ticket</button>
+            <button class="control-btn" onclick="simulateTrafficBurst()">📈 Traffic Burst</button>
+            <button class="control-btn danger" onclick="createCriticalTicket()">🚨 Critical Ticket</button>
+            <button class="control-btn" onclick="pauseProcessing()">⏸️ Pause Processing</button>
+            <button class="control-btn" onclick="resumeProcessing()">▶️ Resume Processing</button>
+            <button class="control-btn" onclick="clearAllTickets()">🗑️ Clear All</button>
+        </div>
+        
+        <div class="ticket-creation-panel">
+            <div class="create-ticket-form">
+                <h3>🎫 Create Custom Ticket</h3>
+                <div class="form-group">
+                    <label for="ticket-priority">Priority</label>
+                    <select id="ticket-priority">
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                        <option value="Critical">Critical</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="ticket-department">Department</label>
+                    <select id="ticket-department">
+                        <option value="IT Support">IT Support</option>
+                        <option value="Customer Service">Customer Service</option>
+                        <option value="Technical">Technical</option>
+                        <option value="Sales">Sales</option>
+                        <option value="Finance">Finance</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="ticket-customer">Customer Tier</label>
+                    <select id="ticket-customer">
+                        <option value="Bronze">Bronze</option>
+                        <option value="Silver">Silver</option>
+                        <option value="Gold">Gold</option>
+                        <option value="Platinum">Platinum</option>
+                        <option value="Enterprise">Enterprise</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="ticket-description">Description</label>
+                    <textarea id="ticket-description" placeholder="Enter ticket description..."></textarea>
+                </div>
+                <button class="create-btn" onclick="createCustomTicket()">🚀 Create Ticket</button>
+            </div>
+            
+            <div class="live-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="total-tickets">0</div>
+                    <div class="stat-label">Total Tickets</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="processing-tickets">0</div>
+                    <div class="stat-label">Processing</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="high-risk-tickets">0</div>
+                    <div class="stat-label">High Risk</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="resolved-tickets">0</div>
+                    <div class="stat-label">Resolved</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avg-processing-time">2.3s</div>
+                    <div class="stat-label">Avg Processing</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="sla-compliance">95.2%</div>
+                    <div class="stat-label">SLA Compliance</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flow-visualization">
+            <h2 class="flow-title">🏭 Live Processing Pipeline</h2>
+            
+            <div class="flow-pipeline">
+                <div class="pipeline-step" id="step-dynamodb">
+                    <div class="step-number">1</div>
+                    <div class="step-name">DynamoDB</div>
+                    <div class="step-count" id="count-dynamodb">0</div>
+                </div>
+                <div class="pipeline-arrow">→</div>
+                
+                <div class="pipeline-step" id="step-eventbridge">
+                    <div class="step-number">2</div>
+                    <div class="step-name">EventBridge</div>
+                    <div class="step-count" id="count-eventbridge">0</div>
+                </div>
+                <div class="pipeline-arrow">→</div>
+                
+                <div class="pipeline-step" id="step-lambda">
+                    <div class="step-number">3</div>
+                    <div class="step-name">Lambda</div>
+                    <div class="step-count" id="count-lambda">0</div>
+                </div>
+                <div class="pipeline-arrow">→</div>
+                
+                <div class="pipeline-step" id="step-sagemaker">
+                    <div class="step-number">4</div>
+                    <div class="step-name">SageMaker</div>
+                    <div class="step-count" id="count-sagemaker">0</div>
+                </div>
+                <div class="pipeline-arrow">→</div>
+                
+                <div class="pipeline-step" id="step-stepfunctions">
+                    <div class="step-number">5</div>
+                    <div class="step-name">Step Functions</div>
+                    <div class="step-count" id="count-stepfunctions">0</div>
+                </div>
+                <div class="pipeline-arrow">→</div>
+                
+                <div class="pipeline-step" id="step-alerts">
+                    <div class="step-number">6</div>
+                    <div class="step-name">Alerts</div>
+                    <div class="step-count" id="count-alerts">0</div>
+                </div>
+                <div class="pipeline-arrow">→</div>
+                
+                <div class="pipeline-step" id="step-quicksight">
+                    <div class="step-number">7</div>
+                    <div class="step-name">QuickSight</div>
+                    <div class="step-count" id="count-quicksight">0</div>
+                </div>
+                <div class="pipeline-arrow">→</div>
+                
+                <div class="pipeline-step" id="step-archive">
+                    <div class="step-number">8</div>
+                    <div class="step-name">Archive</div>
+                    <div class="step-count" id="count-archive">0</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="live-tickets">
+            <div class="tickets-header">
+                <h3 class="tickets-title">🎫 Live Tickets</h3>
+                <div class="ticket-filters">
+                    <button class="filter-btn active" onclick="filterTickets('all')">All</button>
+                    <button class="filter-btn" onclick="filterTickets('high-risk')">High Risk</button>
+                    <button class="filter-btn" onclick="filterTickets('processing')">Processing</button>
+                    <button class="filter-btn" onclick="filterTickets('resolved')">Resolved</button>
+                </div>
+            </div>
+            
+            <div class="tickets-container" id="tickets-container">
+                <!-- Live tickets will be inserted here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification -->
+    <div id="notification" class="notification">
+        <span id="notification-text"></span>
+    </div>
+    
+    <script>
+        // Global state
+        let tickets = [];
+        let ticketCounter = 1;
+        let processingPaused = false;
+        let currentFilter = 'all';
+        
+        // Pipeline step counts
+        let pipelineCounts = {
+            dynamodb: 0,
+            eventbridge: 0,
+            lambda: 0,
+            sagemaker: 0,
+            stepfunctions: 0,
+            alerts: 0,
+            quicksight: 0,
+            archive: 0
+        };
+        
+        // Real-time clock
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleString();
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+        
+        // Ticket creation functions
+        function createRandomTicket() {
+            const priorities = ['Low', 'Medium', 'High', 'Critical'];
+            const departments = ['IT Support', 'Customer Service', 'Technical', 'Sales', 'Finance'];
+            const customerTiers = ['Bronze', 'Silver', 'Gold', 'Platinum', 'Enterprise'];
+            const descriptions = [
+                'System performance issue',
+                'Login authentication problem',
+                'Database connection timeout',
+                'Email delivery failure',
+                'Payment processing error',
+                'API response delay',
+                'Security access denied',
+                'Data synchronization issue'
+            ];
+            
+            const ticket = {
+                id: `TKT-${String(ticketCounter++).padStart(4, '0')}`,
+                priority: priorities[Math.floor(Math.random() * priorities.length)],
+                department: departments[Math.floor(Math.random() * departments.length)],
+                customerTier: customerTiers[Math.floor(Math.random() * customerTiers.length)],
+                description: descriptions[Math.floor(Math.random() * descriptions.length)],
+                status: 'new',
+                createdAt: new Date(),
+                breachProbability: Math.random(),
+                revenueImpact: Math.floor(Math.random() * 200000) + 10000,
+                currentStep: 0,
+                progress: 0
+            };
+            
+            addTicket(ticket);
+            showFloatingTicket(ticket);
+            showNotification(`🎫 New ticket created: ${ticket.id}`, 'success');
+        }
+        
+        function createCriticalTicket() {
+            const ticket = {
+                id: `TKT-${String(ticketCounter++).padStart(4, '0')}`,
+                priority: 'Critical',
+                department: 'IT Support',
+                customerTier: 'Enterprise',
+                description: 'CRITICAL: Production system outage affecting all users',
+                status: 'new',
+                createdAt: new Date(),
+                breachProbability: 0.85 + Math.random() * 0.1,
+                revenueImpact: Math.floor(Math.random() * 500000) + 100000,
+                currentStep: 0,
+                progress: 0
+            };
+            
+            addTicket(ticket);
+            showFloatingTicket(ticket);
+            showNotification(`🚨 CRITICAL ticket created: ${ticket.id}`, 'error');
+        }
+        
+        function createCustomTicket() {
+            const priority = document.getElementById('ticket-priority').value;
+            const department = document.getElementById('ticket-department').value;
+            const customerTier = document.getElementById('ticket-customer').value;
+            const description = document.getElementById('ticket-description').value || 'Custom ticket';
+            
+            let breachProbability = Math.random() * 0.3;
+            if (priority === 'High') breachProbability = 0.4 + Math.random() * 0.3;
+            if (priority === 'Critical') breachProbability = 0.7 + Math.random() * 0.25;
+            
+            const ticket = {
+                id: `TKT-${String(ticketCounter++).padStart(4, '0')}`,
+                priority,
+                department,
+                customerTier,
+                description,
+                status: 'new',
+                createdAt: new Date(),
+                breachProbability,
+                revenueImpact: Math.floor(Math.random() * 150000) + 20000,
+                currentStep: 0,
+                progress: 0
+            };
+            
+            addTicket(ticket);
+            showFloatingTicket(ticket);
+            showNotification(`✅ Custom ticket created: ${ticket.id}`, 'success');
+            
+            // Clear form
+            document.getElementById('ticket-description').value = '';
+        }
+        
+        function simulateTrafficBurst() {
+            showNotification('📈 Simulating traffic burst...', 'info');
+            
+            const burstCount = 5 + Math.floor(Math.random() * 10);
+            let created = 0;
+            
+            const createBurstTicket = () => {
+                if (created < burstCount) {
+                    createRandomTicket();
+                    created++;
+                    setTimeout(createBurstTicket, 200 + Math.random() * 500);
+                } else {
+                    showNotification(`🎯 Traffic burst complete! Created ${burstCount} tickets`, 'success');
+                }
+            };
+            
+            createBurstTicket();
+        }
+        
+        function addTicket(ticket) {
+            tickets.unshift(ticket);
+            pipelineCounts.dynamodb++;
+            updatePipelineDisplay();
+            renderTickets();
+            updateStats();
+            
+            // Start processing the ticket
+            if (!processingPaused) {
+                setTimeout(() => processTicket(ticket), 1000 + Math.random() * 2000);
+            }
+        }
+        
+        function processTicket(ticket) {
+            if (processingPaused) return;
+            
+            const steps = ['eventbridge', 'lambda', 'sagemaker', 'stepfunctions', 'alerts', 'quicksight', 'archive'];
+            
+            if (ticket.currentStep < steps.length) {
+                const currentStepName = steps[ticket.currentStep];
+                const previousStepName = ticket.currentStep === 0 ? 'dynamodb' : steps[ticket.currentStep - 1];
+                
+                // Move from previous step
+                if (pipelineCounts[previousStepName] > 0) {
+                    pipelineCounts[previousStepName]--;
+                }
+                
+                // Add to current step
+                pipelineCounts[currentStepName]++;
+                ticket.currentStep++;
+                ticket.progress = (ticket.currentStep / (steps.length + 1)) * 100;
+                
+                // Update ticket status
+                if (ticket.currentStep === 1) ticket.status = 'processing';
+                if (ticket.currentStep === 4) ticket.status = 'predicted';
+                if (ticket.currentStep === 5 && ticket.breachProbability > 0.7) ticket.status = 'alerted';
+                if (ticket.currentStep === steps.length) ticket.status = 'resolved';
+                
+                updatePipelineDisplay();
+                renderTickets();
+                updateStats();
+                
+                // Show alerts for high-risk tickets
+                if (ticket.currentStep === 5 && ticket.breachProbability > 0.7) {
+                    showNotification(`🚨 HIGH RISK: ${ticket.id} - ${(ticket.breachProbability * 100).toFixed(1)}% breach probability`, 'error');
+                }
+                
+                // Continue processing
+                if (ticket.currentStep < steps.length) {
+                    const processingTime = 1500 + Math.random() * 3000;
+                    setTimeout(() => processTicket(ticket), processingTime);
+                }
+            }
+        }
+        
+        function updatePipelineDisplay() {
+            Object.keys(pipelineCounts).forEach(step => {
+                const countElement = document.getElementById(`count-${step}`);
+                const stepElement = document.getElementById(`step-${step}`);
+                
+                if (countElement) {
+                    countElement.textContent = pipelineCounts[step];
+                }
+                
+                if (stepElement) {
+                    stepElement.className = 'pipeline-step';
+                    if (pipelineCounts[step] > 0) {
+                        stepElement.classList.add('active');
+                    }
+                }
+            });
+        }
+        
+        function renderTickets() {
+            const container = document.getElementById('tickets-container');
+            const filteredTickets = filterTicketsByType(tickets, currentFilter);
+            
+            container.innerHTML = '';
+            
+            filteredTickets.forEach(ticket => {
+                const ticketElement = createTicketElement(ticket);
+                container.appendChild(ticketElement);
+            });
+        }
+        
+        function createTicketElement(ticket) {
+            const div = document.createElement('div');
+            div.className = 'ticket-item';
+            
+            // Add risk class
+            if (ticket.breachProbability > 0.7) {
+                div.classList.add('high-risk');
+            } else if (ticket.breachProbability > 0.3) {
+                div.classList.add('medium-risk');
+            }
+            
+            if (ticket.status === 'processing' || ticket.status === 'predicted') {
+                div.classList.add('processing');
+            }
+            
+            const riskClass = ticket.breachProbability > 0.7 ? 'high-risk' : 
+                             ticket.breachProbability > 0.3 ? 'medium-risk' : '';
+            
+            div.innerHTML = `
+                <div class="ticket-header">
+                    <div class="ticket-id">${ticket.id}</div>
+                    <div class="ticket-status status-${ticket.status}">${ticket.status}</div>
+                </div>
+                <div class="ticket-details">
+                    <div class="ticket-detail">
+                        <div class="detail-label">Priority</div>
+                        <div class="detail-value">${ticket.priority}</div>
+                    </div>
+                    <div class="ticket-detail">
+                        <div class="detail-label">Department</div>
+                        <div class="detail-value">${ticket.department}</div>
+                    </div>
+                    <div class="ticket-detail">
+                        <div class="detail-label">Customer</div>
+                        <div class="detail-value">${ticket.customerTier}</div>
+                    </div>
+                    <div class="ticket-detail">
+                        <div class="detail-label">Breach Risk</div>
+                        <div class="detail-value breach-probability">${(ticket.breachProbability * 100).toFixed(1)}%</div>
+                    </div>
+                    <div class="ticket-detail">
+                        <div class="detail-label">Revenue Impact</div>
+                        <div class="detail-value">$${(ticket.revenueImpact / 1000).toFixed(0)}K</div>
+                    </div>
+                    <div class="ticket-detail">
+                        <div class="detail-label">Created</div>
+                        <div class="detail-value">${ticket.createdAt.toLocaleTimeString()}</div>
+                    </div>
+                </div>
+                <div class="ticket-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill ${riskClass}" style="width: ${ticket.progress}%"></div>
+                    </div>
+                </div>
+            `;
+            
+            return div;
+        }
+        
+        function filterTicketsByType(tickets, filter) {
+            switch (filter) {
+                case 'high-risk':
+                    return tickets.filter(t => t.breachProbability > 0.7);
+                case 'processing':
+                    return tickets.filter(t => t.status === 'processing' || t.status === 'predicted');
+                case 'resolved':
+                    return tickets.filter(t => t.status === 'resolved');
+                default:
+                    return tickets;
+            }
+        }
+        
+        function filterTickets(filter) {
+            currentFilter = filter;
+            
+            // Update filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            renderTickets();
+        }
+        
+        function updateStats() {
+            document.getElementById('total-tickets').textContent = tickets.length;
+            document.getElementById('processing-tickets').textContent = 
+                tickets.filter(t => t.status === 'processing' || t.status === 'predicted').length;
+            document.getElementById('high-risk-tickets').textContent = 
+                tickets.filter(t => t.breachProbability > 0.7).length;
+            document.getElementById('resolved-tickets').textContent = 
+                tickets.filter(t => t.status === 'resolved').length;
+            
+            // Update compliance rate based on resolved tickets
+            const resolvedTickets = tickets.filter(t => t.status === 'resolved');
+            const breachedTickets = resolvedTickets.filter(t => t.breachProbability > 0.7);
+            const complianceRate = resolvedTickets.length > 0 ? 
+                ((resolvedTickets.length - breachedTickets.length) / resolvedTickets.length * 100) : 95.2;
+            
+            document.getElementById('sla-compliance').textContent = `${complianceRate.toFixed(1)}%`;
+        }
+        
+        function showFloatingTicket(ticket) {
+            const floatingDiv = document.createElement('div');
+            floatingDiv.className = 'floating-ticket';
+            floatingDiv.textContent = `🎫 ${ticket.id} - ${ticket.priority}`;
+            
+            if (ticket.breachProbability > 0.7) {
+                floatingDiv.style.background = '#e74c3c';
+            } else if (ticket.breachProbability > 0.3) {
+                floatingDiv.style.background = '#f39c12';
+            }
+            
+            document.body.appendChild(floatingDiv);
+            
+            setTimeout(() => {
+                document.body.removeChild(floatingDiv);
+            }, 5000);
+        }
+        
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            const text = document.getElementById('notification-text');
+            
+            text.textContent = message;
+            notification.className = `notification ${type} show`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        function pauseProcessing() {
+            processingPaused = true;
+            showNotification('⏸️ Processing paused', 'warning');
+        }
+        
+        function resumeProcessing() {
+            processingPaused = false;
+            showNotification('▶️ Processing resumed', 'success');
+            
+            // Resume processing for all non-resolved tickets
+            tickets.filter(t => t.status !== 'resolved').forEach(ticket => {
+                setTimeout(() => processTicket(ticket), Math.random() * 2000);
+            });
+        }
+        
+        function clearAllTickets() {
+            tickets = [];
+            Object.keys(pipelineCounts).forEach(step => {
+                pipelineCounts[step] = 0;
+            });
+            
+            renderTickets();
+            updateStats();
+            updatePipelineDisplay();
+            showNotification('🗑️ All tickets cleared', 'info');
+        }
+        
+        // Auto-create tickets periodically
+        function autoCreateTickets() {
+            if (!processingPaused && Math.random() < 0.3) {
+                createRandomTicket();
+            }
+        }
+        
+        // Start auto-creation (every 10-30 seconds)
+        setInterval(autoCreateTickets, 10000 + Math.random() * 20000);
+        
+        // Initialize with some sample tickets
+        setTimeout(() => {
+            createRandomTicket();
+            setTimeout(() => createRandomTicket(), 2000);
+            setTimeout(() => createCriticalTicket(), 4000);
+        }, 1000);
+        
+        // Welcome message
+        setTimeout(() => {
+            showNotification('🛡️ SLA Guard Live Dashboard ready! Create tickets to see the magic!', 'success');
+        }, 500);
+    </script>
+</body>
+</html>

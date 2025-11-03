@@ -1,0 +1,6 @@
+# Lambda runtime dependencies
+boto3
+botocore
+numpy
+python-dateutil
+pytz

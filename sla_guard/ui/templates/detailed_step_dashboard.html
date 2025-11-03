@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SLA Guard Detailed Step Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .controls {
+            background: #34495e;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .control-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 1em;
+        }
+        
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .control-btn.danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+        
+        .pipeline-detailed {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+        
+        .step-detail-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            border-left: 5px solid #3498db;
+        }
+        
+        .step-detail-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+        
+        .step-detail-card.active {
+            border-left-color: #27ae60;
+            background: linear-gradient(135deg, rgba(39, 174, 96, 0.05), white);
+        }
+        
+        .step-detail-card.processing {
+            border-left-color: #f39c12;
+            background: linear-gradient(135deg, rgba(243, 156, 18, 0.05), white);
+            animation: processing-glow 2s infinite;
+        }
+        
+        .step-detail-card.error {
+            border-left-color: #e74c3c;
+            background: linear-gradient(135deg, rgba(231, 76, 60, 0.05), white);
+        }
+        
+        @keyframes processing-glow {
+            0%, 100% { box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); }
+            50% { box-shadow: 0 8px 25px rgba(243, 156, 18, 0.3); }
+        }
+        
+        .step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .step-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .step-number {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        
+        .step-name {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .step-status {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-idle {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .status-active {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .status-processing {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .status-error {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .step-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .metric {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .metric-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 5px;
+        }
+        
+        .metric-label {
+            font-size: 0.8em;
+            color: #7f8c8d;
+            text-transform: uppercase;
+        }
+        
+        .step-activity {
+            margin-bottom: 20px;
+        }
+        
+        .activity-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .activity-log {
+            background: #2c3e50;
+            color: #ecf0f1;
+            border-radius: 10px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            max-height: 200px;
+            overflow-y: auto;
+            line-height: 1.4;
+        }
+        
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .log-timestamp {
+            color: #3498db;
+            font-weight: bold;
+        }
+        
+        .log-level-info {
+            color: #27ae60;
+        }
+        
+        .log-level-warn {
+            color: #f39c12;
+        }
+        
+        .log-level-error {
+            color: #e74c3c;
+        }
+        
+        .step-details {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 5px 0;
+        }
+        
+        .detail-label {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .detail-value {
+            color: #7f8c8d;
+        }
+        
+        .progress-section {
+            margin-top: 20px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #ecf0f1;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2980b9);
+            border-radius: 4px;
+            transition: width 1s ease;
+            position: relative;
+        }
+        
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: progress-shine 2s infinite;
+        }
+        
+        @keyframes progress-shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .ticket-flow {
+            background: white;
+            margin: 20px;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .flow-title {
+            font-size: 1.8em;
+            color: #2c3e50;
+            font-weight: bold;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        
+        .current-tickets {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        
+        .ticket-in-step {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            transition: all 0.3s ease;
+        }
+        
+        .ticket-in-step:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .ticket-in-step.high-risk {
+            border-left-color: #e74c3c;
+            background: linear-gradient(90deg, rgba(231, 76, 60, 0.1), #f8f9fa);
+        }
+        
+        .ticket-in-step.medium-risk {
+            border-left-color: #f39c12;
+            background: linear-gradient(90deg, rgba(243, 156, 18, 0.1), #f8f9fa);
+        }
+        
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .ticket-id {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .ticket-risk {
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        
+        .risk-high {
+            color: #e74c3c;
+        }
+        
+        .risk-medium {
+            color: #f39c12;
+        }
+        
+        .risk-low {
+            color: #27ae60;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #27ae60;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1001;
+            max-width: 400px;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.error {
+            background: #e74c3c;
+        }
+        
+        .notification.warning {
+            background: #f39c12;
+        }
+        
+        .notification.info {
+            background: #3498db;
+        }
+        
+        @media (max-width: 768px) {
+            .pipeline-detailed {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ SLA Guard Detailed Step Dashboard</h1>
+            <p>Real-Time Pipeline Step Analysis & Activity Monitoring</p>
+            <p>Innovation-Brigade Account (508955320780) | <span id="current-time"></span></p>
+        </div>
+        
+        <div class="controls">
+            <button class="control-btn" onclick="createRandomTicket()">🎫 Create Ticket</button>
+            <button class="control-btn danger" onclick="createCriticalTicket()">🚨 Critical Ticket</button>
+            <button class="control-btn" onclick="simulateTrafficBurst()">📈 Traffic Burst</button>
+            <button class="control-btn" onclick="pauseProcessing()">⏸️ Pause</button>
+            <button class="control-btn" onclick="resumeProcessing()">▶️ Resume</button>
+            <button class="control-btn" onclick="clearLogs()">🗑️ Clear Logs</button>
+        </div>
+        
+        <div class="pipeline-detailed">
+            <!-- Step 1: DynamoDB -->
+            <div class="step-detail-card" id="step-dynamodb">
+                <div class="step-header">
+                    <div class="step-title">
+                        <div class="step-number">1</div>
+                        <div class="step-name">DynamoDB</div>
+                    </div>
+                    <div class="step-status status-idle" id="status-dynamodb">Idle</div>
+                </div>
+                
+                <div class="step-metrics">
+                    <div class="metric">
+                        <div class="metric-value" id="dynamodb-count">0</div>
+                        <div class="metric-label">Tickets</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="dynamodb-throughput">0</div>
+                        <div class="metric-label">RCU/WCU</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="dynamodb-latency">2ms</div>
+                        <div class="metric-label">Latency</div>
+                    </div>
+                </div>
+                
+                <div class="step-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Table:</span>
+                        <span class="detail-value">sla-tickets</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Streams:</span>
+                        <span class="detail-value">Enabled</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Last Write:</span>
+                        <span class="detail-value" id="dynamodb-last-write">Never</span>
+                    </div>
+                </div>
+                
+                <div class="step-activity">
+                    <div class="activity-title">📝 Activity Log</div>
+                    <div class="activity-log" id="dynamodb-log">
+                        <div class="log-entry">
+                            <span class="log-timestamp">[00:00:00]</span>
+                            <span class="log-level-info">[INFO]</span>
+                            DynamoDB table ready for ticket storage
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="progress-section">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="dynamodb-progress" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 2: EventBridge -->
+            <div class="step-detail-card" id="step-eventbridge">
+                <div class="step-header">
+                    <div class="step-title">
+                        <div class="step-number">2</div>
+                        <div class="step-name">EventBridge</div>
+                    </div>
+                    <div class="step-status status-idle" id="status-eventbridge">Idle</div>
+                </div>
+                
+                <div class="step-metrics">
+                    <div class="metric">
+                        <div class="metric-value" id="eventbridge-count">0</div>
+                        <div class="metric-label">Events</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="eventbridge-rate">5min</div>
+                        <div class="metric-label">Schedule</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="eventbridge-success">100%</div>
+                        <div class="metric-label">Success</div>
+                    </div>
+                </div>
+                
+                <div class="step-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Rule:</span>
+                        <span class="detail-value">sla-guard-scheduler</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Target:</span>
+                        <span class="detail-value">Lambda Function</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Next Run:</span>
+                        <span class="detail-value" id="eventbridge-next">In 5 minutes</span>
+                    </div>
+                </div>
+                
+                <div class="step-activity">
+                    <div class="activity-title">⏰ Scheduler Log</div>
+                    <div class="activity-log" id="eventbridge-log">
+                        <div class="log-entry">
+                            <span class="log-timestamp">[00:00:00]</span>
+                            <span class="log-level-info">[INFO]</span>
+                            EventBridge scheduler initialized
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="progress-section">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="eventbridge-progress" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 3: Lambda -->
+            <div class="step-detail-card" id="step-lambda">
+                <div class="step-header">
+                    <div class="step-title">
+                        <div class="step-number">3</div>
+                        <div class="step-name">Lambda</div>
+                    </div>
+                    <div class="step-status status-idle" id="status-lambda">Idle</div>
+                </div>
+                
+                <div class="step-metrics">
+                    <div class="metric">
+                        <div class="metric-value" id="lambda-count">0</div>
+                        <div class="metric-label">Processing</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="lambda-duration">2.3s</div>
+                        <div class="metric-label">Avg Duration</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="lambda-memory">512MB</div>
+                        <div class="metric-label">Memory</div>
+                    </div>
+                </div>
+                
+                <div class="step-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Function:</span>
+                        <span class="detail-value">sla-guard-processor</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Runtime:</span>
+                        <span class="detail-value">Python 3.9</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Timeout:</span>
+                        <span class="detail-value">5 minutes</span>
+                    </div>
+                </div>
+                
+                <div class="step-activity">
+                    <div class="activity-title">⚡ Execution Log</div>
+                    <div class="activity-log" id="lambda-log">
+                        <div class="log-entry">
+                            <span class="log-timestamp">[00:00:00]</span>
+                            <span class="log-level-info">[INFO]</span>
+                            Lambda function ready for batch processing
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="progress-section">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="lambda-progress" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 4: SageMaker -->
+            <div class="step-detail-card" id="step-sagemaker">
+                <div class="step-header">
+                    <div class="step-title">
+                        <div class="step-number">4</div>
+                        <div class="step-name">SageMaker</div>
+                    </div>
+                    <div class="step-status status-idle" id="status-sagemaker">Idle</div>
+                </div>
+                
+                <div class="step-metrics">
+                    <div class="metric">
+                        <div class="metric-value" id="sagemaker-count">0</div>
+                        <div class="metric-label">Predictions</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="sagemaker-latency">45ms</div>
+                        <div class="metric-label">Latency</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="sagemaker-accuracy">94.2%</div>
+                        <div class="metric-label">Accuracy</div>
+                    </div>
+                </div>
+                
+                <div class="step-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Endpoint:</span>
+                        <span class="detail-value">sla-guard-endpoint</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Model:</span>
+                        <span class="detail-value">XGBoost v2.1</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Instance:</span>
+                        <span class="detail-value">ml.t2.medium</span>
+                    </div>
+                </div>
+                
+                <div class="step-activity">
+                    <div class="activity-title">🤖 ML Predictions</div>
+                    <div class="activity-log" id="sagemaker-log">
+                        <div class="log-entry">
+                            <span class="log-timestamp">[00:00:00]</span>
+                            <span class="log-level-info">[INFO]</span>
+                            SageMaker endpoint ready for predictions
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="progress-section">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="sagemaker-progress" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 5: Step Functions -->
+            <div class="step-detail-card" id="step-stepfunctions">
+                <div class="step-header">
+                    <div class="step-title">
+                        <div class="step-number">5</div>
+                        <div class="step-name">Step Functions</div>
+                    </div>
+                    <div class="step-status status-idle" id="status-stepfunctions">Idle</div>
+                </div>
+                
+                <div class="step-metrics">
+                    <div class="metric">
+                        <div class="metric-value" id="stepfunctions-count">0</div>
+                        <div class="metric-label">Executions</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="stepfunctions-success">99.2%</div>
+                        <div class="metric-label">Success</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="stepfunctions-duration">15s</div>
+                        <div class="metric-label">Avg Duration</div>
+                    </div>
+                </div>
+                
+                <div class="step-details">
+                    <div class="detail-item">
+                        <span class="detail-label">State Machine:</span>
+                        <span class="detail-value">SLA-Guard-Workflow</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Type:</span>
+                        <span class="detail-value">Standard</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Status:</span>
+                        <span class="detail-value">Active</span>
+                    </div>
+                </div>
+                
+                <div class="step-activity">
+                    <div class="activity-title">🔄 Workflow Log</div>
+                    <div class="activity-log" id="stepfunctions-log">
+                        <div class="log-entry">
+                            <span class="log-timestamp">[00:00:00]</span>
+                            <span class="log-level-info">[INFO]</span>
+                            Step Functions workflow ready
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="progress-section">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="stepfunctions-progress" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 6: Alerts -->
+            <div class="step-detail-card" id="step-alerts">
+                <div class="step-header">
+                    <div class="step-title">
+                        <div class="step-number">6</div>
+                        <div class="step-name">SNS/SES Alerts</div>
+                    </div>
+                    <div class="step-status status-idle" id="status-alerts">Idle</div>
+                </div>
+                
+                <div class="step-metrics">
+                    <div class="metric">
+                        <div class="metric-value" id="alerts-count">0</div>
+                        <div class="metric-label">Alerts</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="alerts-critical">0</div>
+                        <div class="metric-label">Critical</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="alerts-delivery">100%</div>
+                        <div class="metric-label">Delivery</div>
+                    </div>
+                </div>
+                
+                <div class="step-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Topic:</span>
+                        <span class="detail-value">sla-guard-alerts</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Subscribers:</span>
+                        <span class="detail-value">12</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Threshold:</span>
+                        <span class="detail-value">70% breach risk</span>
+                    </div>
+                </div>
+                
+                <div class="step-activity">
+                    <div class="activity-title">🚨 Alert Log</div>
+                    <div class="activity-log" id="alerts-log">
+                        <div class="log-entry">
+                            <span class="log-timestamp">[00:00:00]</span>
+                            <span class="log-level-info">[INFO]</span>
+                            Alert system monitoring for high-risk tickets
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="progress-section">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="alerts-progress" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 7: QuickSight -->
+            <div class="step-detail-card" id="step-quicksight">
+                <div class="step-header">
+                    <div class="step-title">
+                        <div class="step-number">7</div>
+                        <div class="step-name">QuickSight</div>
+                    </div>
+                    <div class="step-status status-idle" id="status-quicksight">Idle</div>
+                </div>
+                
+                <div class="step-metrics">
+                    <div class="metric">
+                        <div class="metric-value" id="quicksight-count">0</div>
+                        <div class="metric-label">Updates</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="quicksight-users">23</div>
+                        <div class="metric-label">Users</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="quicksight-refresh">5min</div>
+                        <div class="metric-label">Refresh</div>
+                    </div>
+                </div>
+                
+                <div class="step-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Dataset:</span>
+                        <span class="detail-value">SLA Guard Analytics</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Dashboards:</span>
+                        <span class="detail-value">3</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Last Refresh:</span>
+                        <span class="detail-value" id="quicksight-last-refresh">Never</span>
+                    </div>
+                </div>
+                
+                <div class="step-activity">
+                    <div class="activity-title">📊 Dashboard Log</div>
+                    <div class="activity-log" id="quicksight-log">
+                        <div class="log-entry">
+                            <span class="log-timestamp">[00:00:00]</span>
+                            <span class="log-level-info">[INFO]</span>
+                            QuickSight dashboard ready for updates
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="progress-section">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="quicksight-progress" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 8: Archive -->
+            <div class="step-detail-card" id="step-archive">
+                <div class="step-header">
+                    <div class="step-title">
+                        <div class="step-number">8</div>
+                        <div class="step-name">S3/Athena Archive</div>
+                    </div>
+                    <div class="step-status status-idle" id="status-archive">Idle</div>
+                </div>
+                
+                <div class="step-metrics">
+                    <div class="metric">
+                        <div class="metric-value" id="archive-count">0</div>
+                        <div class="metric-label">Archived</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="archive-size">2.3GB</div>
+                        <div class="metric-label">Size</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="archive-queries">23</div>
+                        <div class="metric-label">Queries</div>
+                    </div>
+                </div>
+                
+                <div class="step-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Bucket:</span>
+                        <span class="detail-value">sla-guard-archive-508955320780</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Objects:</span>
+                        <span class="detail-value" id="archive-objects">15,847</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Retention:</span>
+                        <span class="detail-value">7 years</span>
+                    </div>
+                </div>
+                
+                <div class="step-activity">
+                    <div class="activity-title">🗄️ Archive Log</div>
+                    <div class="activity-log" id="archive-log">
+                        <div class="log-entry">
+                            <span class="log-timestamp">[00:00:00]</span>
+                            <span class="log-level-info">[INFO]</span>
+                            S3 archive ready for long-term storage
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="progress-section">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="archive-progress" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="ticket-flow">
+            <h3 class="flow-title">🎫 Current Tickets in Pipeline</h3>
+            <div class="current-tickets" id="current-tickets">
+                <!-- Current tickets will be displayed here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification -->
+    <div id="notification" class="notification">
+        <span id="notification-text"></span>
+    </div>
+    
+    <script>
+        // Global state
+        let tickets = [];
+        let ticketCounter = 1;
+        let processingPaused = false;
+        let stepCounts = {
+            dynamodb: 0,
+            eventbridge: 0,
+            lambda: 0,
+            sagemaker: 0,
+            stepfunctions: 0,
+            alerts: 0,
+            quicksight: 0,
+            archive: 0
+        };
+        
+        // Real-time clock
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleString();
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+        
+        // Ticket creation functions
+        function createRandomTicket() {
+            const priorities = ['Low', 'Medium', 'High', 'Critical'];
+            const departments = ['IT Support', 'Customer Service', 'Technical', 'Sales', 'Finance'];
+            const customerTiers = ['Bronze', 'Silver', 'Gold', 'Platinum', 'Enterprise'];
+            const descriptions = [
+                'System performance issue',
+                'Login authentication problem',
+                'Database connection timeout',
+                'Email delivery failure',
+                'Payment processing error',
+                'API response delay',
+                'Security access denied',
+                'Data synchronization issue'
+            ];
+            
+            const priority = priorities[Math.floor(Math.random() * priorities.length)];
+            let breachProbability = Math.random() * 0.3;
+            if (priority === 'High') breachProbability = 0.4 + Math.random() * 0.3;
+            if (priority === 'Critical') breachProbability = 0.7 + Math.random() * 0.25;
+            
+            const ticket = {
+                id: `TKT-${String(ticketCounter++).padStart(4, '0')}`,
+                priority: priority,
+                department: departments[Math.floor(Math.random() * departments.length)],
+                customerTier: customerTiers[Math.floor(Math.random() * customerTiers.length)],
+                description: descriptions[Math.floor(Math.random() * descriptions.length)],
+                status: 'new',
+                createdAt: new Date(),
+                breachProbability: breachProbability,
+                revenueImpact: Math.floor(Math.random() * 200000) + 10000,
+                currentStep: 'dynamodb',
+                progress: 0
+            };
+            
+            addTicket(ticket);
+            logActivity('dynamodb', 'info', `New ticket created: ${ticket.id} (${priority})`);
+            showNotification(`🎫 Ticket created: ${ticket.id}`, 'success');
+        }
+        
+        function createCriticalTicket() {
+            const ticket = {
+                id: `TKT-${String(ticketCounter++).padStart(4, '0')}`,
+                priority: 'Critical',
+                department: 'IT Support',
+                customerTier: 'Enterprise',
+                description: 'CRITICAL: Production system outage affecting all users',
+                status: 'new',
+                createdAt: new Date(),
+                breachProbability: 0.85 + Math.random() * 0.1,
+                revenueImpact: Math.floor(Math.random() * 500000) + 100000,
+                currentStep: 'dynamodb',
+                progress: 0
+            };
+            
+            addTicket(ticket);
+            logActivity('dynamodb', 'error', `CRITICAL ticket created: ${ticket.id}`);
+            showNotification(`🚨 CRITICAL ticket: ${ticket.id}`, 'error');
+        }
+        
+        function simulateTrafficBurst() {
+            showNotification('📈 Simulating traffic burst...', 'info');
+            
+            const burstCount = 5 + Math.floor(Math.random() * 8);
+            let created = 0;
+            
+            const createBurstTicket = () => {
+                if (created < burstCount) {
+                    createRandomTicket();
+                    created++;
+                    setTimeout(createBurstTicket, 200 + Math.random() * 500);
+                } else {
+                    showNotification(`🎯 Traffic burst complete! Created ${burstCount} tickets`, 'success');
+                }
+            };
+            
+            createBurstTicket();
+        }
+        
+        function addTicket(ticket) {
+            tickets.unshift(ticket);
+            stepCounts.dynamodb++;
+            updateStepDisplay('dynamodb');
+            updateCurrentTicketsDisplay();
+            
+            // Start processing the ticket
+            if (!processingPaused) {
+                setTimeout(() => processTicket(ticket), 1000 + Math.random() * 2000);
+            }
+        }
+        
+        function processTicket(ticket) {
+            if (processingPaused) return;
+            
+            const steps = ['eventbridge', 'lambda', 'sagemaker', 'stepfunctions', 'alerts', 'quicksight', 'archive'];
+            const stepNames = {
+                eventbridge: 'EventBridge',
+                lambda: 'Lambda',
+                sagemaker: 'SageMaker',
+                stepfunctions: 'Step Functions',
+                alerts: 'SNS/SES Alerts',
+                quicksight: 'QuickSight',
+                archive: 'S3/Athena Archive'
+            };
+            
+            const currentStepIndex = steps.indexOf(ticket.currentStep);
+            if (currentStepIndex < steps.length - 1) {
+                const nextStep = steps[currentStepIndex + 1];
+                
+                // Move from current step
+                if (stepCounts[ticket.currentStep] > 0) {
+                    stepCounts[ticket.currentStep]--;
+                    updateStepDisplay(ticket.currentStep);
+                }
+                
+                // Add to next step
+                stepCounts[nextStep]++;
+                ticket.currentStep = nextStep;
+                ticket.progress = ((currentStepIndex + 2) / (steps.length + 1)) * 100;
+                
+                // Update status
+                if (nextStep === 'lambda') ticket.status = 'processing';
+                if (nextStep === 'sagemaker') ticket.status = 'predicted';
+                if (nextStep === 'alerts' && ticket.breachProbability > 0.7) ticket.status = 'alerted';
+                if (nextStep === 'archive') ticket.status = 'resolved';
+                
+                // Log activity
+                logActivity(nextStep, 'info', `Processing ${ticket.id} - ${stepNames[nextStep]}`);
+                
+                // Special processing for each step
+                processStepSpecific(ticket, nextStep);
+                
+                updateStepDisplay(nextStep);
+                updateCurrentTicketsDisplay();
+                
+                // Continue processing
+                if (currentStepIndex < steps.length - 2) {
+                    const processingTime = 1500 + Math.random() * 3000;
+                    setTimeout(() => processTicket(ticket), processingTime);
+                }
+            }
+        }
+        
+        function processStepSpecific(ticket, step) {
+            switch (step) {
+                case 'eventbridge':
+                    logActivity(step, 'info', `Scheduled processing for ${ticket.id}`);
+                    setStepStatus(step, 'processing');
+                    setTimeout(() => setStepStatus(step, 'active'), 2000);
+                    break;
+                    
+                case 'lambda':
+                    logActivity(step, 'info', `Batch processing ${ticket.id}`);
+                    logActivity(step, 'info', `Memory usage: ${Math.floor(200 + Math.random() * 200)}MB`);
+                    setStepStatus(step, 'processing');
+                    setTimeout(() => setStepStatus(step, 'active'), 3000);
+                    break;
+                    
+                case 'sagemaker':
+                    const prediction = (ticket.breachProbability * 100).toFixed(1);
+                    logActivity(step, 'info', `ML prediction for ${ticket.id}: ${prediction}% breach risk`);
+                    logActivity(step, 'info', `Model confidence: ${(85 + Math.random() * 10).toFixed(1)}%`);
+                    setStepStatus(step, 'processing');
+                    setTimeout(() => setStepStatus(step, 'active'), 1500);
+                    break;
+                    
+                case 'stepfunctions':
+                    logActivity(step, 'info', `Workflow execution started for ${ticket.id}`);
+                    logActivity(step, 'info', `Decision tree: ${ticket.breachProbability > 0.7 ? 'High Risk Path' : 'Normal Path'}`);
+                    setStepStatus(step, 'processing');
+                    setTimeout(() => setStepStatus(step, 'active'), 2500);
+                    break;
+                    
+                case 'alerts':
+                    if (ticket.breachProbability > 0.7) {
+                        logActivity(step, 'warn', `HIGH RISK ALERT: ${ticket.id} - ${(ticket.breachProbability * 100).toFixed(1)}% breach risk`);
+                        logActivity(step, 'error', `Revenue impact: $${(ticket.revenueImpact / 1000).toFixed(0)}K`);
+                        showNotification(`🚨 HIGH RISK: ${ticket.id} - Revenue impact $${(ticket.revenueImpact / 1000).toFixed(0)}K`, 'error');
+                        setStepStatus(step, 'error');
+                        setTimeout(() => setStepStatus(step, 'active'), 3000);
+                    } else {
+                        logActivity(step, 'info', `Normal processing for ${ticket.id}`);
+                        setStepStatus(step, 'processing');
+                        setTimeout(() => setStepStatus(step, 'active'), 1000);
+                    }
+                    break;
+                    
+                case 'quicksight':
+                    logActivity(step, 'info', `Dashboard updated with ${ticket.id} data`);
+                    logActivity(step, 'info', `SPICE dataset refreshed`);
+                    setStepStatus(step, 'processing');
+                    setTimeout(() => setStepStatus(step, 'active'), 2000);
+                    break;
+                    
+                case 'archive':
+                    logActivity(step, 'info', `${ticket.id} archived to S3`);
+                    logActivity(step, 'info', `Compliance record created`);
+                    setStepStatus(step, 'processing');
+                    setTimeout(() => setStepStatus(step, 'active'), 1500);
+                    break;
+            }
+        }
+        
+        function setStepStatus(step, status) {
+            const statusElement = document.getElementById(`status-${step}`);
+            const cardElement = document.getElementById(`step-${step}`);
+            
+            if (statusElement) {
+                statusElement.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+                statusElement.className = `step-status status-${status}`;
+            }
+            
+            if (cardElement) {
+                cardElement.className = `step-detail-card ${status}`;
+            }
+        }
+        
+        function updateStepDisplay(step) {
+            const countElement = document.getElementById(`${step}-count`);
+            if (countElement) {
+                countElement.textContent = stepCounts[step];
+            }
+            
+            // Update progress bar
+            const progressElement = document.getElementById(`${step}-progress`);
+            if (progressElement) {
+                const progress = Math.min(100, (stepCounts[step] / Math.max(1, tickets.length)) * 100);
+                progressElement.style.width = `${progress}%`;
+            }
+            
+            // Update last activity time
+            const timeElements = {
+                'dynamodb-last-write': 'dynamodb',
+                'eventbridge-next': 'eventbridge',
+                'quicksight-last-refresh': 'quicksight'
+            };
+            
+            Object.keys(timeElements).forEach(elementId => {
+                if (timeElements[elementId] === step) {
+                    const element = document.getElementById(elementId);
+                    if (element) {
+                        element.textContent = new Date().toLocaleTimeString();
+                    }
+                }
+            });
+        }
+        
+        function updateCurrentTicketsDisplay() {
+            const container = document.getElementById('current-tickets');
+            container.innerHTML = '';
+            
+            // Group tickets by current step
+            const ticketsByStep = {};
+            tickets.forEach(ticket => {
+                if (ticket.status !== 'resolved') {
+                    if (!ticketsByStep[ticket.currentStep]) {
+                        ticketsByStep[ticket.currentStep] = [];
+                    }
+                    ticketsByStep[ticket.currentStep].push(ticket);
+                }
+            });
+            
+            // Display tickets for each step
+            Object.keys(ticketsByStep).forEach(step => {
+                ticketsByStep[step].forEach(ticket => {
+                    const ticketElement = createTicketInStepElement(ticket);
+                    container.appendChild(ticketElement);
+                });
+            });
+            
+            if (container.children.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #7f8c8d; padding: 20px;">No tickets currently in pipeline</div>';
+            }
+        }
+        
+        function createTicketInStepElement(ticket) {
+            const div = document.createElement('div');
+            div.className = 'ticket-in-step';
+            
+            if (ticket.breachProbability > 0.7) {
+                div.classList.add('high-risk');
+            } else if (ticket.breachProbability > 0.3) {
+                div.classList.add('medium-risk');
+            }
+            
+            const riskLevel = ticket.breachProbability > 0.7 ? 'high' : 
+                             ticket.breachProbability > 0.3 ? 'medium' : 'low';
+            
+            div.innerHTML = `
+                <div class="ticket-header">
+                    <div class="ticket-id">${ticket.id}</div>
+                    <div class="ticket-risk risk-${riskLevel}">${(ticket.breachProbability * 100).toFixed(1)}%</div>
+                </div>
+                <div style="font-size: 0.9em; color: #7f8c8d; margin-bottom: 5px;">
+                    Currently in: <strong>${ticket.currentStep.toUpperCase()}</strong>
+                </div>
+                <div style="font-size: 0.8em; color: #7f8c8d;">
+                    ${ticket.priority} | ${ticket.department} | $${(ticket.revenueImpact / 1000).toFixed(0)}K
+                </div>
+            `;
+            
+            return div;
+        }
+        
+        function logActivity(step, level, message) {
+            const logElement = document.getElementById(`${step}-log`);
+            if (logElement) {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('div');
+                logEntry.className = 'log-entry';
+                logEntry.innerHTML = `
+                    <span class="log-timestamp">[${timestamp}]</span>
+                    <span class="log-level-${level}">[${level.toUpperCase()}]</span>
+                    ${message}
+                `;
+                
+                logElement.insertBefore(logEntry, logElement.firstChild);
+                
+                // Keep only last 10 entries
+                while (logElement.children.length > 10) {
+                    logElement.removeChild(logElement.lastChild);
+                }
+                
+                // Auto-scroll to top
+                logElement.scrollTop = 0;
+            }
+        }
+        
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            const text = document.getElementById('notification-text');
+            
+            text.textContent = message;
+            notification.className = `notification ${type} show`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 4000);
+        }
+        
+        function pauseProcessing() {
+            processingPaused = true;
+            showNotification('⏸️ Processing paused', 'warning');
+            logActivity('dynamodb', 'warn', 'Processing paused by user');
+        }
+        
+        function resumeProcessing() {
+            processingPaused = false;
+            showNotification('▶️ Processing resumed', 'success');
+            logActivity('dynamodb', 'info', 'Processing resumed by user');
+            
+            // Resume processing for all non-resolved tickets
+            tickets.filter(t => t.status !== 'resolved').forEach(ticket => {
+                setTimeout(() => processTicket(ticket), Math.random() * 2000);
+            });
+        }
+        
+        function clearLogs() {
+            const steps = ['dynamodb', 'eventbridge', 'lambda', 'sagemaker', 'stepfunctions', 'alerts', 'quicksight', 'archive'];
+            steps.forEach(step => {
+                const logElement = document.getElementById(`${step}-log`);
+                if (logElement) {
+                    logElement.innerHTML = `
+                        <div class="log-entry">
+                            <span class="log-timestamp">[${new Date().toLocaleTimeString()}]</span>
+                            <span class="log-level-info">[INFO]</span>
+                            Logs cleared - ${step} ready
+                        </div>
+                    `;
+                }
+            });
+            showNotification('🗑️ All logs cleared', 'info');
+        }
+        
+        // Auto-create tickets periodically
+        function autoCreateTickets() {
+            if (!processingPaused && Math.random() < 0.2) {
+                createRandomTicket();
+            }
+        }
+        
+        // Start auto-creation (every 15-45 seconds)
+        setInterval(autoCreateTickets, 15000 + Math.random() * 30000);
+        
+        // Initialize with some sample tickets
+        setTimeout(() => {
+            createRandomTicket();
+            setTimeout(() => createRandomTicket(), 3000);
+            setTimeout(() => createCriticalTicket(), 6000);
+        }, 2000);
+        
+        // Welcome message
+        setTimeout(() => {
+            showNotification('🛡️ SLA Guard Detailed Dashboard ready! Watch the step-by-step processing!', 'success');
+        }, 1000);
+    </script>
+</body>
+</html>

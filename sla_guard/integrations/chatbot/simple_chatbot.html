@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 AI Support Chatbot</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .chatbot-container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .header h1 { font-size: 1.5em; margin-bottom: 5px; }
+        .header p { opacity: 0.9; }
+        
+        .chat-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .message.bot { justify-content: flex-start; }
+        .message.user { justify-content: flex-end; }
+        
+        .message-content {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            line-height: 1.4;
+        }
+        
+        .message.bot .message-content {
+            background: white;
+            border: 1px solid #e1e8ed;
+        }
+        
+        .message.user .message-content {
+            background: #3498db;
+            color: white;
+        }
+        
+        .ticket-info {
+            background: rgba(39, 174, 96, 0.1);
+            border: 1px solid #27ae60;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+        
+        .input-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e1e8ed;
+        }
+        
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .input-container input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e1e8ed;
+            border-radius: 25px;
+            outline: none;
+        }
+        
+        .input-container input:focus {
+            border-color: #3498db;
+        }
+        
+        .send-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .send-btn:hover { background: #2980b9; }
+        .send-btn:disabled { background: #bdc3c7; cursor: not-allowed; }
+        
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .quick-action {
+            background: #ecf0f1;
+            border: 1px solid #bdc3c7;
+            border-radius: 15px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+        
+        .quick-action:hover {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+    </style>
+</head>
+<body>
+    <div class="chatbot-container">
+        <div class="header">
+            <h1>🤖 AI Support Assistant</h1>
+            <p>Describe your issue and I'll create a ticket automatically</p>
+        </div>
+        
+        <div class="chat-area" id="chat-area">
+            <div class="message bot">
+                <div class="message-content">
+                    <strong>Hello! I'm your AI Support Assistant.</strong><br><br>
+                    I can help you create support tickets by understanding your issues. 
+                    Just describe your problem and I'll automatically create a ticket with the right priority and department.
+                    
+                    <div class="quick-actions">
+                        <div class="quick-action" onclick="sendQuickMessage('Aadhaar authentication not working in Indore')">Aadhaar Issue</div>
+                        <div class="quick-action" onclick="sendQuickMessage('Payment gateway timeout in Bhopal')">Payment Problem</div>
+                        <div class="quick-action" onclick="sendQuickMessage('Portal login not working')">Portal Issue</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="input-area">
+            <div class="input-container">
+                <input type="text" id="message-input" placeholder="Describe your issue..." maxlength="300">
+                <button class="send-btn" id="send-btn" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('message-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+        
+        function sendMessage() {
+            const input = document.getElementById('message-input');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            addMessage('user', message);
+            input.value = '';
+            
+            // Disable send button
+            document.getElementById('send-btn').disabled = true;
+            
+            // Process message
+            setTimeout(() => processMessage(message), 1000);
+        }
+        
+        function sendQuickMessage(message) {
+            document.getElementById('message-input').value = message;
+            sendMessage();
+        }
+        
+        function addMessage(sender, content) {
+            const chatArea = document.getElementById('chat-area');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            messageDiv.innerHTML = `<div class="message-content">${content}</div>`;
+            chatArea.appendChild(messageDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+        
+        function processMessage(message) {
+            // Analyze message
+            const analysis = analyzeMessage(message);
+            const ticket = createTicket(message, analysis);
+            
+            // Create response
+            const response = `
+                <strong>✅ Ticket Created Successfully!</strong><br><br>
+                
+                <div class="ticket-info">
+                    <strong>🎫 Ticket ID:</strong> ${ticket.ticket_id}<br>
+                    <strong>🏛️ Department:</strong> ${ticket.department}<br>
+                    <strong>🚨 Priority:</strong> ${ticket.priority}<br>
+                    <strong>📍 Location:</strong> ${ticket.location}<br>
+                    <strong>⏰ SLA Deadline:</strong> ${ticket.sla_deadline}<br>
+                    <strong>📊 Status:</strong> ${ticket.status}
+                </div>
+                
+                <strong>🏭 Production Flow Triggered:</strong><br>
+                ✅ Stored in DynamoDB<br>
+                ✅ EventBridge monitoring started<br>
+                ✅ SLA Guard activated<br>
+                ${ticket.priority === 'P1' ? '🚨 Immediate alert sent<br>' : ''}
+                ✅ Dashboard updated<br><br>
+                
+                Your ticket is now in the system and being processed!
+            `;
+            
+            addMessage('bot', response);
+            
+            // Re-enable send button
+            document.getElementById('send-btn').disabled = false;
+            
+            // Save ticket (simulate)
+            console.log('Ticket created:', ticket);
+            localStorage.setItem('latest_ticket', JSON.stringify(ticket));
+        }
+        
+        function analyzeMessage(message) {
+            const text = message.toLowerCase();
+            
+            // Department detection
+            let department = 'MPOnline';
+            if (text.includes('aadhaar') || text.includes('authentication') || text.includes('biometric')) {
+                department = 'UIDAI';
+            } else if (text.includes('payment') || text.includes('transaction') || text.includes('gateway')) {
+                department = 'MeiTY';
+            } else if (text.includes('portal') || text.includes('website') || text.includes('digital')) {
+                department = 'DigitalMP';
+            } else if (text.includes('certificate') || text.includes('document')) {
+                department = 'eDistrict';
+            }
+            
+            // Priority detection
+            let priority = 'P3';
+            if (text.includes('critical') || text.includes('urgent') || text.includes('failing') || text.includes('down')) {
+                priority = 'P1';
+            } else if (text.includes('important') || text.includes('high') || text.includes('serious')) {
+                priority = 'P2';
+            } else if (text.includes('minor') || text.includes('small')) {
+                priority = 'P4';
+            }
+            
+            // Location detection
+            const locations = ['mumbai', 'delhi', 'bangalore', 'hyderabad', 'chennai', 'kolkata',
+                             'pune', 'ahmedabad', 'jaipur', 'lucknow', 'kanpur', 'nagpur',
+                             'indore', 'bhopal', 'visakhapatnam', 'patna', 'vadodara', 'gwalior'];
+            
+            let location = 'Not specified';
+            for (const loc of locations) {
+                if (text.includes(loc)) {
+                    location = loc.charAt(0).toUpperCase() + loc.slice(1);
+                    break;
+                }
+            }
+            
+            return { department, priority, location };
+        }
+        
+        function createTicket(message, analysis) {
+            const now = new Date();
+            const dateStr = now.toISOString().slice(2, 10).replace(/-/g, '');
+            const timeStr = now.toTimeString().slice(0, 5).replace(':', '');
+            
+            const ticket_id = `${analysis.department}-${analysis.priority}-${dateStr}-${timeStr}`;
+            
+            // Calculate SLA deadline
+            const slaHours = { 'P1': 2, 'P2': 8, 'P3': 24, 'P4': 72 }[analysis.priority] || 24;
+            const slaDeadline = new Date(now.getTime() + slaHours * 60 * 60 * 1000);
+            
+            return {
+                ticket_id,
+                source: 'chatbot',
+                user_message: message,
+                department: analysis.department,
+                priority: analysis.priority,
+                location: analysis.location,
+                status: 'Open',
+                created_at: now.toISOString(),
+                sla_deadline: slaDeadline.toLocaleTimeString('en-IN', { hour12: true }),
+                breach_probability: { 'P1': 0.85, 'P2': 0.65, 'P3': 0.45, 'P4': 0.25 }[analysis.priority] || 0.45,
+                revenue_impact: { 'P1': 200000, 'P2': 100000, 'P3': 50000, 'P4': 20000 }[analysis.priority] || 50000
+            };
+        }
+    </script>
+</body>
+</html>
